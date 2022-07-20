@@ -11,8 +11,9 @@
 		5318CA6728850FC2008FDE8E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5318CA6628850FC2008FDE8E /* ContentView.swift */; };
 		5318CA6928850FC4008FDE8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5318CA6828850FC4008FDE8E /* Assets.xcassets */; };
 		5318CA6C28850FC4008FDE8E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5318CA6B28850FC4008FDE8E /* Preview Assets.xcassets */; };
-		5318CA76288510E0008FDE8E /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 5318CA75288510E0008FDE8E /* App */; };
 		5318CA79288513C8008FDE8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5318CA78288513C8008FDE8E /* AppDelegate.swift */; };
+		53F9B6B92888C35A00FF4701 /* App in Resources */ = {isa = PBXBuildFile; fileRef = 53F9B6B82888C35A00FF4701 /* App */; };
+		53F9B6BB2888C37000FF4701 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 53F9B6BA2888C37000FF4701 /* App */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,9 +22,9 @@
 		5318CA6628850FC2008FDE8E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		5318CA6828850FC4008FDE8E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5318CA6B28850FC4008FDE8E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		5318CA7328851051008FDE8E /* App */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = App; path = ../../App; sourceTree = "<group>"; };
 		5318CA77288510EE008FDE8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5318CA78288513C8008FDE8E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		53F9B6B82888C35A00FF4701 /* App */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = App; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,7 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5318CA76288510E0008FDE8E /* App in Frameworks */,
+				53F9B6BB2888C37000FF4701 /* App in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,7 +42,7 @@
 		5318CA5828850FC2008FDE8E = {
 			isa = PBXGroup;
 			children = (
-				5318CA7328851051008FDE8E /* App */,
+				53F9B6B82888C35A00FF4701 /* App */,
 				5318CA6328850FC2008FDE8E /* tracker */,
 				5318CA6228850FC2008FDE8E /* Products */,
 				5318CA74288510E0008FDE8E /* Frameworks */,
@@ -101,7 +102,7 @@
 			);
 			name = tracker;
 			packageProductDependencies = (
-				5318CA75288510E0008FDE8E /* App */,
+				53F9B6BA2888C37000FF4701 /* App */,
 			);
 			productName = tracker;
 			productReference = 5318CA6128850FC2008FDE8E /* tracker.app */;
@@ -145,6 +146,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				53F9B6B92888C35A00FF4701 /* App in Resources */,
 				5318CA6C28850FC4008FDE8E /* Preview Assets.xcassets in Resources */,
 				5318CA6928850FC4008FDE8E /* Assets.xcassets in Resources */,
 			);
@@ -292,6 +294,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = tracker/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Want to track your location";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Want to track your location";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -322,6 +326,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = tracker/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Want to track your location";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Want to track your location";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -364,7 +370,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5318CA75288510E0008FDE8E /* App */ = {
+		53F9B6BA2888C37000FF4701 /* App */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = App;
 		};
