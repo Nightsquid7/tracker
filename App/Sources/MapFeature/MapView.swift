@@ -9,7 +9,7 @@ public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, Void>
   switch action {
   case .gotUpdatedLocation(let location):
     logger.info("received location mapViewReducer \(location)")
-    state.locations.append(location)
+    state.currentLocation = location
     
   case .receivedLocations(let locations):
     state.oldLocations = locations
@@ -73,6 +73,7 @@ public final class MapViewRepresentable: UIViewRepresentable {
     self.viewStore = ViewStore(store)
     mapView.showsUserLocation = true
     viewStore.publisher.currentLocation.sink(receiveValue: { location in
+      logger.info("mapView update location \(location)")
       self.currentLocations.append(location.coordinate)
       let _polyline = MyPolyline(coordinates: self.currentLocations, count: self.currentLocations.count)
       self.mapView.addOverlay(_polyline)
@@ -81,19 +82,19 @@ public final class MapViewRepresentable: UIViewRepresentable {
     })
     .store(in: &cancellables)
     
-    viewStore.publisher.locations
-      .filter { $0.count > 0 }
-      .debounce(for: .seconds(1), scheduler: RunLoop.main)
-      .sink(receiveValue: { locations in
-      logger.info("mapView locations \(locations.count)")
-      let coordinates = locations.map { $0.coordinate }
-      let polyline = MyPolyline(coordinates: coordinates, count: coordinates.count)
-      
-      self.mapView.addOverlay(polyline)
-      self.mapView.removeOverlay(self.currentPolyline)
-      self.currentPolyline = polyline
-    })
-    .store(in: &cancellables)
+//    viewStore.publisher.locations
+//      .filter { $0.count > 0 }
+//      .debounce(for: .seconds(1), scheduler: RunLoop.main)
+//      .sink(receiveValue: { locations in
+//      logger.info("mapView locations \(locations.count)")
+//      let coordinates = locations.map { $0.coordinate }
+//      let polyline = MyPolyline(coordinates: coordinates, count: coordinates.count)
+//
+//      self.mapView.addOverlay(polyline)
+//      self.mapView.removeOverlay(self.currentPolyline)
+//      self.currentPolyline = polyline
+//    })
+//    .store(in: &cancellables)
     
     viewStore.publisher.oldLocations
       .filter { $0.count > 0 }
