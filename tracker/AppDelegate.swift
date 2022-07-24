@@ -1,10 +1,16 @@
 import AppFeature
 import ComposableArchitecture
 import CoreLocation
+import Logging
+import LoggerFeature
+import Pulse
 import UIKit
+import RealmSwift
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
  
+
+  
   let locationManager = CLLocationManager()
   let store  = Store(
     initialState: .init(),
@@ -19,15 +25,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
   
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    print("Hello Dill, [\(launchOptions)]")
-    
-    
+  
     viewStore.send(.locationAction(.startListening))
-    
-    print("locationManager.delegate \(locationManager.delegate)")
-    
+    logger.info("didFinishLaunchingWithOptions")
     if let locationKey = launchOptions?[UIApplication.LaunchOptionsKey.location] {
-      print("started from location")
+      logger.info("started app with location key \(locationKey)")
     }
     return true
     }

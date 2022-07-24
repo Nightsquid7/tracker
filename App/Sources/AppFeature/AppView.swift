@@ -3,6 +3,8 @@ import ComposableArchitecture
 import LocationFeature
 import MapKit
 import MapFeature
+import LoggerFeature
+import PulseUI
 import SwiftUI
 
 public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
@@ -23,36 +25,45 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
               environment: { _ in }),
   
     .init { state, action, env in
-      print("\nACTION \(action)\n")
+
       switch action {
+      
+        
       case .locationAction(let locationAction):
         switch locationAction {
+        
         case .startListening:
           return env.locationClient.startListening()
             .map { AppAction.locationAction(.receivedEvent($0)) }
             
         case .receivedEvent(let event):
-          print("received event \(event)")
+          logger.info("received event logger")
           switch event {
           case .location(let location):
-            print("set cooridinate region")
-            state.appViewState.coordinateRegion.region = MKCoordinateRegion(center:  CLLocationCoordinate2D(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude), span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005))
+            state.appViewState.events.append(.location(location))
+            return Effect(value: AppAction.mapAction(.gotUpdatedLocation(location)))
+
           default:
             break
             
           }
-          state.appViewState.events = env.locationClient.getSavedLocations()//.sorted(by: { $0.timestamp < $1.timestamp })
-          state.appViewState.mapViewState.coordinates = Coordinates(coordinates: env.locationClient.getAllSavedCoordinates())
-
+          
           return .none
         }
       
       case .appViewAction(let appViewAction):
-        if case .deleteRealm = appViewAction {
+        switch appViewAction {
+        case .loadOldLocations:
+          let allLocations = env.locationClient.getAllSavedLocations()
+          return Effect(value: AppAction.mapAction(.receivedLocations(allLocations)))
+
+        case .deleteRealm:
           env.locationClient.deleteRealm()
-          
+          return .none
+        case .testAction:
+          env.locationClient.getDistances()
+          return .none
         }
-        return .none
         
       default:
         return .none
@@ -88,8 +99,9 @@ public struct AppView: View {
   }
   
   public enum ViewAction: Equatable {
-    case temp
     case deleteRealm
+    case loadOldLocations
+    case testAction
   }
   
   public init(store: Store<AppState, AppAction>) {
@@ -101,29 +113,25 @@ public struct AppView: View {
   
   public var body: some View {
     VStack {
-      
       MapView(store: store.scope(state: \.appViewState.mapViewState, action: AppAction.mapAction))
-      
+
       HStack {
         Button (action: {
           viewStore.send(.appViewAction(.deleteRealm))
         }, label: {
           Text("Delete realm")
         })
-        
+
         Toggle(isOn: $presentingListView, label: { Text("Toggle list view")})
       }
       .frame(height: 50)
     }
     .popover(isPresented: $presentingListView, content: {
-            List {
-              ForEach(viewStore.appViewState.events, id: \.self) { event in
-                Text(event.toString())
-              }
-            }
+      MainView()
     })
       .onAppear {
-        viewStore.send(AppAction.appDelegate(.didFinishLaunching))
+        viewStore.send(AppAction.appViewAction(.loadOldLocations))
+//        viewStore.send(AppAction.appViewAction(.testAction))
       }
   }
 }

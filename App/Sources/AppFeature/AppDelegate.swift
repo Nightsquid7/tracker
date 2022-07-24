@@ -17,7 +17,6 @@ public struct AppDelegateEnvironment {
 public let appDelegateReducer = Reducer<AppDelegateState, AppDelegateAction,  AppDelegateEnvironment> { state, action, env in
   switch action {
   case .didFinishLaunching:
-    print("did finish launching appDelegateReducer")
     return .none
     
   default: 

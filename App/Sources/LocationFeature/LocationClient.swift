@@ -3,11 +3,13 @@ import ComposableArchitecture
 import CoreLocation
 import Models
 import RealmSwift
+import LoggerFeature
 
 public struct LocationClient {
   public var startListening: () -> Effect<LocationEvent, Never>
-  public var getSavedLocations: () -> [LocationEvent]
   public var getAllSavedCoordinates: () -> [CLLocationCoordinate2D]
+  public var getAllSavedLocations: () -> [CLLocation]
+  public var getDistances: () -> Void
   public var deleteRealm: () -> Void
 }
 
@@ -23,9 +25,7 @@ extension LocationClient {
     
     return Self(
       startListening: {
-//        try! locationDelegate.realm.write {
-//          locationDelegate.realm.deleteAll()
-//        }
+        
         
         locationManager.requestAlwaysAuthorization()
         locationManager.allowsBackgroundLocationUpdates = true
@@ -41,16 +41,29 @@ extension LocationClient {
           .eraseToEffect()
       },
       
-      getSavedLocations: {
-        return Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: {$0.timestamp > $1.timestamp}).map { LocationEvent._location($0) })
-      },
-      
       getAllSavedCoordinates: {
         return Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.clCoordinate2d() })
       },
       
+      getAllSavedLocations: {
+        return Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() })
+      }, getDistances: {
+        let locations = locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp })
+        var locationsToDelete: [RealmLocation] = []
+        for (loc1, loc2) in zip(locations, locations[1...]) {
+          let distance = loc1.location().distance(from: loc2.location())
+          if distance < 20 {
+            print("We should delete realm with distance: \(distance) \(loc2)")
+            locationsToDelete.append(loc2)
+          }
+        }
+        try! locationDelegate.realm.write {
+          locationDelegate.realm.delete(locationsToDelete)
+        }
+      },
+      
       deleteRealm: {
-        print("delete all")
+        print("Delete all")
         try! locationDelegate.realm.write {
           locationDelegate.realm.deleteAll()
         }
@@ -66,7 +79,6 @@ public struct Location: Equatable {
 
 public enum LocationEvent: Equatable, Hashable {
   case location(CLLocation)
-  case _location(RealmLocation)
   case message(String)
   case error
   
@@ -74,8 +86,6 @@ public enum LocationEvent: Equatable, Hashable {
     switch self {
     case .location(let location):
       return "\(location.timestamp.description(with: .current)) lat: \(String(format: "%3.3f", location.coordinate.latitude)) long: \(String(format: "%3.3f", location.coordinate.longitude))"
-    case ._location(let realmLocation):
-      return "\(realmLocation.timestamp.description(with: .current)) lat: \(String(format: "%3.8f", realmLocation.latitude)) long: \(String(format: "%3.8f", realmLocation.longitude))"
     case .message(let message):
       return message
     case .error: return "error"
@@ -85,29 +95,57 @@ public enum LocationEvent: Equatable, Hashable {
 
 final class LocationDelegate: NSObject, CLLocationManagerDelegate {
   let publisher = PassthroughSubject<LocationEvent, Never>()
-  let realm = try! Realm()
+  let realm: Realm
+  // cache the last saved location to avoid checking db every time location is received
+  var lastSavedLocation: CLLocation?
   
-  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    print("received locations \(locations )")
-    locations.forEach { print("$0.horizontalAccuracy \($0.horizontalAccuracy)", "$0.verticalAccuracy \($0.verticalAccuracy), \n speed \($0.speed)")}
+  override init() {
+    var config = Realm.Configuration()
+    config.deleteRealmIfMigrationNeeded = true
+    realm = try! Realm(configuration: config)
+  }
     
-    do {
-      try realm.write {
-        realm.add(RealmLocation(location: locations[0]))
-      }
-    } catch {
-      print("error saving realm \(error)")
+  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    logger.info("received locations: \(locations.count)")
+    guard let mostRecentLocation = locations.last else { return }
+    if lastSavedLocation == nil {
+      lastSavedLocation = realm.objects(RealmLocation.self).max(by: { $0.timestamp < $1.timestamp})?.location()
+      logger.info("lastSavedLocation is nil, lastSavedLocation in database is: \(lastSavedLocation)")
     }
     
-    publisher.send(.location(locations[0]) )
+    guard let lastSavedLocation = lastSavedLocation else {
+      // Save the point to realm and exit
+      logger.info("lastSavedLocation is nil, cache lastSavedLocation, save mostRecentLocation to realm")
+      lastSavedLocation = mostRecentLocation
+      do {
+        try realm.write {
+          realm.add(RealmLocation(location: mostRecentLocation))
+        }
+      } catch {
+        logger.info("error saving realm \(error)")
+      }
+      return
+    }
+    
+    logger.info("mostRecentLocation speed: \(mostRecentLocation.speed) .distance(from: lastSavedLocation) \(mostRecentLocation.distance(from: lastSavedLocation)) \n \(mostRecentLocation)")
+    
+    if mostRecentLocation.distance(from: lastSavedLocation) > 10 && mostRecentLocation.speed > 0 {
+      logger.info("save point with distance \(mostRecentLocation.distance(from: lastSavedLocation)), speed: \(mostRecentLocation.speed)")
+      do {
+        try realm.write {
+          realm.add(RealmLocation(location: mostRecentLocation))
+        }
+        publisher.send(.location(mostRecentLocation) )
+      } catch {
+        logger.info("error saving realm \(error)")
+      }
+    }
+    
+    self.lastSavedLocation = mostRecentLocation
   }
   
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    print("received error \(error)")
+    logger.info("received error \(error)")
     publisher.send(.error)
   }
-}
-
-extension CLLocation: Equatable {
-  
 }

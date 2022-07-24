@@ -18,38 +18,53 @@ let package = Package(
     
     dependencies: [
          .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.35.0"),
-         .package(url: "https://github.com/realm/realm-swift.git", from: "10.28.2")
+         .package(url: "https://github.com/realm/realm-swift.git", from: "10.28.2"),
+         .package(url: "https://github.com/kean/Pulse", from: "1.1.0")
     ],
     
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages this package depends on.
+       
       .target(name: "AppFeature",
               dependencies: [
                 .product(name: "ComposableArchitecture",
                          package: "swift-composable-architecture"),
                 "LocationFeature",
-                "MapFeature"
+                "LoggerFeature",
+                "MapFeature",
+                .productItem(name: "Pulse",
+                             package: "Pulse"),
+                .productItem(name: "PulseUI",
+                             package: "Pulse"),
                     ]),
-      
+              
+        .target(name: "LoggerFeature", dependencies: [.productItem(name: "Pulse",
+                                                                   package: "Pulse"),]),
         .target(name: "LocationFeature",
                 dependencies: [
                   .product(name: "ComposableArchitecture",
                            package: "swift-composable-architecture"),
                 
                     .product(name: "RealmSwift", package: "realm-swift"),
-                    "Models"
+                    "Models",
+                    "LoggerFeature",
+                    .productItem(name: "Pulse",
+                                 package: "Pulse"),
                 ]),
       
         .target(name: "MapFeature",
                 dependencies: [
                   .product(name: "ComposableArchitecture",
                            package: "swift-composable-architecture"),
+                  .productItem(name: "Pulse",
+                               package: "Pulse"),
+                  "LoggerFeature",
               
                 ]),
       
         .target(name: "Models", dependencies: [
           .product(name: "RealmSwift", package: "realm-swift"),
+          .productItem(name: "Pulse",
+                       package: "Pulse"),
         ]),
                 
       ]

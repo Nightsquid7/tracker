@@ -1,7 +1,10 @@
 import CoreLocation
 import Foundation
 import LocationFeature
+import Logging
 import MapFeature
+import Pulse
+
 
 public struct AppState: Equatable {
   var appDelegateState: AppDelegateState
@@ -11,6 +14,9 @@ public struct AppState: Equatable {
               appViewState: AppView.ViewState = .init()) {
     self.appDelegateState = appDelegateState
     self.appViewState = appViewState
+    
+    LoggingSystem.bootstrap(PersistentLogHandler.init)
+    
   }
 }
 
@@ -25,5 +31,3 @@ public enum AppAction: Equatable {
   case locationAction(LocationAction)
   case mapAction(MapView.ViewAction)
 }
-
-
