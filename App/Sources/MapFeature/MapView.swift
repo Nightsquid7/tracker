@@ -82,20 +82,6 @@ public final class MapViewRepresentable: UIViewRepresentable {
     })
     .store(in: &cancellables)
     
-//    viewStore.publisher.locations
-//      .filter { $0.count > 0 }
-//      .debounce(for: .seconds(1), scheduler: RunLoop.main)
-//      .sink(receiveValue: { locations in
-//      logger.info("mapView locations \(locations.count)")
-//      let coordinates = locations.map { $0.coordinate }
-//      let polyline = MyPolyline(coordinates: coordinates, count: coordinates.count)
-//
-//      self.mapView.addOverlay(polyline)
-//      self.mapView.removeOverlay(self.currentPolyline)
-//      self.currentPolyline = polyline
-//    })
-//    .store(in: &cancellables)
-    
     viewStore.publisher.oldLocations
       .filter { $0.count > 0 }
       .sink(receiveValue: { locations in
