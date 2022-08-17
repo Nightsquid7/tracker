@@ -11,6 +11,7 @@ public struct LocationClient {
   public var getAllSavedLocations: () -> [CLLocation]
   public var getDistances: () -> Void
   public var deleteRealm: () -> Void
+  public var testLocations: () -> Void
 }
 
 
@@ -25,17 +26,18 @@ extension LocationClient {
     
     return Self(
       startListening: {
-        
-        
         locationManager.requestAlwaysAuthorization()
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = true
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = 10
         locationManager.startUpdatingLocation()
+        locationManager.activityType = .otherNavigation
+        locationManager.startMonitoringSignificantLocationChanges()
         
         locationManager.delegate = locationDelegate
 
+        
         return locationDelegate
           .publisher
           .eraseToEffect()
@@ -46,6 +48,8 @@ extension LocationClient {
       },
       
       getAllSavedLocations: {
+        // print locations...
+        //        Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() }).forEach { print($0)}
         return Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() })
       }, getDistances: {
         let locations = locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp })
@@ -66,6 +70,23 @@ extension LocationClient {
         print("Delete all")
         try! locationDelegate.realm.write {
           locationDelegate.realm.deleteAll()
+        }
+      },
+      testLocations: {
+        print("Test locations")
+        let locations = [
+          CLLocation(coordinate: CLLocationCoordinate2D(latitude: 35.736378, longitude: 139.778412), altitude: 0, horizontalAccuracy: 0, verticalAccuracy: 0, course: 0, speed: 1, timestamp: Date(timeIntervalSinceNow: -6)),
+          CLLocation(coordinate: CLLocationCoordinate2D(latitude: 35.736004, longitude: 139.778314), altitude: 0, horizontalAccuracy: 0, verticalAccuracy: 0, course: 0, speed: 1, timestamp: Date(timeIntervalSinceNow: -5)),
+          CLLocation(coordinate: CLLocationCoordinate2D(latitude: 35.735638, longitude: 139.778314), altitude: 0, horizontalAccuracy: 0, verticalAccuracy: 0, course: 0, speed: 1, timestamp: Date(timeIntervalSinceNow: -4)),
+          CLLocation(coordinate: CLLocationCoordinate2D(latitude: 35.735072, longitude: 139.778400), altitude: 0, horizontalAccuracy: 0, verticalAccuracy: 0, course: 0, speed: 1, timestamp: Date(timeIntervalSinceNow: -3)),
+          CLLocation(coordinate: CLLocationCoordinate2D(latitude: 35.734863, longitude: 139.778658), altitude: 0, horizontalAccuracy: 0, verticalAccuracy: 0, course: 0, speed: 1, timestamp: Date(timeIntervalSinceNow: -2)),
+          CLLocation(coordinate: CLLocationCoordinate2D(latitude: 35.734218, longitude: 139.778765), altitude: 0, horizontalAccuracy: 0, verticalAccuracy: 0, course: 0, speed: 1, timestamp: Date(timeIntervalSinceNow: -1)),
+        ]
+        
+        logger.info("Programatically adding locations..")
+        for location in locations {
+          print("add locations \(location)")
+          locationDelegate.locationManager(locationManager, didUpdateLocations: [location])
         }
       }
     )
@@ -100,9 +121,23 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
   var lastSavedLocation: CLLocation?
   
   override init() {
-    var config = Realm.Configuration()
+    var config = Realm.Configuration(shouldCompactOnLaunch: { totalBytes, usedBytes in
+      logger.info("bytes used \(usedBytes)  total bytes\(totalBytes)")
+      return false
+    })
     config.deleteRealmIfMigrationNeeded = true
     realm = try! Realm(configuration: config)
+    
+    let path = realm.configuration.fileURL!.path
+    let attributes = try! FileManager.default.attributesOfItem(atPath: path)
+    if let fileSize = attributes[FileAttributeKey.size] as? Double {
+      logger.info("size of realm: \(fileSize)")
+      
+      logger.info("realmLocation memoryLayout: \(MemoryLayout<RealmLocation>.size)")
+      
+      logger.info("class_getInstanceSize(RealmLocation.self) \(class_getInstanceSize(RealmLocation.self))")
+      print(fileSize)
+    }
   }
     
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -117,7 +152,9 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
       // Save the point to realm and exit
       logger.info("lastSavedLocation is nil, cache lastSavedLocation, save mostRecentLocation to realm")
       lastSavedLocation = mostRecentLocation
+      
       do {
+        
         try realm.write {
           realm.add(RealmLocation(location: mostRecentLocation))
         }

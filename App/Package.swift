@@ -31,6 +31,7 @@ let package = Package(
                 "LocationFeature",
                 "LoggerFeature",
                 "MapFeature",
+                "TrackerUI",
                 .productItem(name: "Pulse",
                              package: "Pulse"),
                 .productItem(name: "PulseUI",
@@ -66,6 +67,19 @@ let package = Package(
           .productItem(name: "Pulse",
                        package: "Pulse"),
         ]),
+      
+        .target(name: "TrackerUI",
+                dependencies: [
+                  .product(name: "ComposableArchitecture",
+                           package: "swift-composable-architecture"),
+//                  "LocationFeature",
+//                  "LoggerFeature",
+                  "MapFeature",
+                  .productItem(name: "Pulse",
+                               package: "Pulse"),
+                  .productItem(name: "PulseUI",
+                               package: "Pulse"),
+                      ]),
                 
       ]
 )

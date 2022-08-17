@@ -6,6 +6,7 @@ import MapFeature
 import LoggerFeature
 import PulseUI
 import SwiftUI
+import TrackerUI
 
 public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
   appDelegateReducer
@@ -37,7 +38,6 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
             .map { AppAction.locationAction(.receivedEvent($0)) }
             
         case .receivedEvent(let event):
-          logger.info("received event logger")
           switch event {
           case .location(let location):
             state.appViewState.events.append(.location(location))
@@ -61,7 +61,8 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
           env.locationClient.deleteRealm()
           return .none
         case .testAction:
-          env.locationClient.getDistances()
+//          env.locationClient.getDistances()
+          env.locationClient.testLocations()
           return .none
         }
         
@@ -110,28 +111,49 @@ public struct AppView: View {
   }
   
   @State var presentingListView: Bool = false
+  @State var dayViewHeight: CGFloat = 400
   
   public var body: some View {
-    VStack {
-      MapView(store: store.scope(state: \.appViewState.mapViewState, action: AppAction.mapAction))
-
-      HStack {
-        Button (action: {
-          viewStore.send(.appViewAction(.deleteRealm))
-        }, label: {
-          Text("Delete realm")
-        })
-
-        Toggle(isOn: $presentingListView, label: { Text("Toggle list view")})
+    GeometryReader { g in
+      
+    
+      ZStack {
+        MapView(store: store.scope(state: \.appViewState.mapViewState, action: AppAction.mapAction))
+       
+        VStack(spacing: 0) {
+          HStack {
+            Button (action: {
+              presentingListView.toggle()
+            }, label: {
+              ZStack {
+                
+                RoundedRectangle(cornerRadius: 7)
+                  .strokeBorder()
+                
+                Image(systemName: "gear")
+              }
+            })
+            .frame(width: 60, height: 50)
+            
+            
+            Spacer()
+          }
+          .frame(height: 50)
+          
+          Spacer()
+          
+          DayView()
+        }
       }
-      .frame(height: 50)
     }
     .popover(isPresented: $presentingListView, content: {
       MainView()
     })
       .onAppear {
         viewStore.send(AppAction.appViewAction(.loadOldLocations))
-//        viewStore.send(AppAction.appViewAction(.testAction))
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+//          viewStore.send(AppAction.appViewAction(.testAction))
+//        }
       }
   }
 }

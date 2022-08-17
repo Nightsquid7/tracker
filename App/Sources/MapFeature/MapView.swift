@@ -9,7 +9,8 @@ public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, Void>
   switch action {
   case .gotUpdatedLocation(let location):
     logger.info("received location mapViewReducer \(location)")
-    state.currentLocation = location
+//    state.currentLocation = location
+    state.locations.append(location)
     
   case .receivedLocations(let locations):
     state.oldLocations = locations
@@ -72,13 +73,31 @@ public final class MapViewRepresentable: UIViewRepresentable {
     self.store = store
     self.viewStore = ViewStore(store)
     mapView.showsUserLocation = true
-    viewStore.publisher.currentLocation.sink(receiveValue: { location in
-      logger.info("mapView update location \(location)")
-      self.currentLocations.append(location.coordinate)
-      let _polyline = MyPolyline(coordinates: self.currentLocations, count: self.currentLocations.count)
-      self.mapView.addOverlay(_polyline)
+//    viewStore.publisher.currentLocation
+//      .filter { $0.coordinate.latitude != 0}
+//      .sink(receiveValue: { location in
+//      logger.info("mapView update location \(location)")
+//      self.currentLocations.append(location.coordinate)
+//      logger.info("currentLocations \(self.currentLocations.count) \(self.currentLocations)")
+//      let _polyline = MyPolyline(coordinates: self.currentLocations, count: self.currentLocations.count)
+//      self.mapView.addOverlay(_polyline)
+//      self.mapView.removeOverlay(self.currentPolyline)
+//      self.currentPolyline = _polyline
+//    })
+//    .store(in: &cancellables)
+    
+    viewStore.publisher.locations
+      .removeDuplicates()
+      .filter { $0.count > 0 }
+      .debounce(for: .seconds(1), scheduler: RunLoop.main)
+      .sink(receiveValue: { locations in
+      logger.info("mapView locations \(locations.count)")
+      let coordinates = locations.map { $0.coordinate }
+      let polyline = MyPolyline(coordinates: coordinates, count: coordinates.count)
+
+      self.mapView.addOverlay(polyline)
       self.mapView.removeOverlay(self.currentPolyline)
-      self.currentPolyline = _polyline
+      self.currentPolyline = polyline
     })
     .store(in: &cancellables)
     
@@ -86,18 +105,26 @@ public final class MapViewRepresentable: UIViewRepresentable {
       .filter { $0.count > 0 }
       .sink(receiveValue: { locations in
         logger.info("mapView past locations \(locations.count)")
+//        let dates = Set(locations.map { $0.timestamp.onlyDayMonthYear() })
+//        let coordinates = locations.map { $0.coordinate }
+//        print("dates \(dates.count)")
+//
+//        var coordinateArrays: [[CLLocation]] = dates.map { date in
+//          return locations.filter { $0.timestamp.onlyDayMonthYear() == date }
+//        }
         
-        let coordinates = locations.map { $0.coordinate }
-        let polyline = MyPolyline(lineType: .past, coordinates: coordinates)
+        let polyline = MyPolyline(lineType: .past,
+                                  coordinates: locations.map { $0.coordinate })
+        
+//        for (index, day) in coordinateArrays.enumerated() {
+          let randomColor: [UIColor] = [.red, .purple, .green]
           if let location = locations.first, self.region == nil {
             self.region = MKCoordinateRegion(center: location.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02))
             self.mapView.setRegion(self.region!, animated: true)
           }
-        
-        self.mapView.addOverlay(polyline)
-        self.mapView.removeOverlay(self.pastPolyline)
-        self.pastPolyline = polyline
-        
+          
+          self.mapView.addOverlay(polyline)
+          self.pastPolyline = polyline
     })
     .store(in: &cancellables)
   
@@ -130,12 +157,14 @@ public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
     let polylineRenderer = MKPolylineRenderer(overlay: overlay)
     polylineRenderer.lineWidth = 5
     polylineRenderer.strokeColor = .systemPink
+    polylineRenderer.lineJoin = .bevel
+//    polylineRenderer.miterLimit
     if let polyline = overlay as? MyPolyline {
       switch polyline.lineType {
       case .current:
         polylineRenderer.strokeColor = .blue
       case .past:
-        polylineRenderer.strokeColor = .red
+        polylineRenderer.strokeColor = polyline.color ?? .red
       }
     }
     
@@ -161,13 +190,24 @@ public struct Polyline: Equatable {
 final class MyPolyline: MKPolyline {
   
   var lineType: LineType = .current
+  var color: UIColor?
   
-  convenience init(lineType: LineType, coordinates: [CLLocationCoordinate2D] = []) {
+  convenience init(lineType: LineType,
+                   coordinates: [CLLocationCoordinate2D] = [],
+                   color: UIColor? = nil) {
     self.init(coordinates: coordinates, count: coordinates.count)
     self.lineType = lineType
+    self.color = color
   }
   
   override init() {
     super.init()
+  }
+}
+
+extension Date {
+  func onlyDayMonthYear() -> Date {
+    let components = Calendar.current.dateComponents([.year, .month, .day], from: self)
+    return Calendar.current.date(from: components)!
   }
 }
