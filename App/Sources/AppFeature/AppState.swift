@@ -4,11 +4,12 @@ import LocationFeature
 import Logging
 import MapFeature
 import Pulse
+import TrackerUI
 
 
 public struct AppState: Equatable {
-  var appDelegateState: AppDelegateState
-  var appViewState: AppView.ViewState
+  public var appDelegateState: AppDelegateState
+  public var appViewState: AppView.ViewState
   
   public init(appDelegateState: AppDelegateState = AppDelegateState(),
               appViewState: AppView.ViewState = .init()) {
@@ -29,5 +30,6 @@ public enum AppAction: Equatable {
   case appDelegate(AppDelegateAction)
   case appViewAction(AppView.ViewAction)
   case locationAction(LocationAction)
-  case mapAction(MapView.ViewAction)
+//  case mapAction(MapView.ViewAction)
+//  case dayViewAction(DayView.ViewAction)
 }
