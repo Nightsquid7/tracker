@@ -2,15 +2,9 @@ import ComposableArchitecture
 import SwiftUI
 
 public struct DayView: View {
-  
-  enum Appearance {
-    case minimum
-    case medium
-    case max
-  }
-  
+
   public struct ViewState: Equatable {
-    var selectedDate: Date?
+    public var selectedDate: Date?
     
     public init(selectedDate: Date? = nil) {
       self.selectedDate = selectedDate
@@ -19,6 +13,7 @@ public struct DayView: View {
   
   public enum ViewAction: Equatable {
     case showDatePicker
+    
   }
   
   var viewStore: ViewStore<ViewState, ViewAction>
@@ -26,10 +21,7 @@ public struct DayView: View {
   public init(store: Store<ViewState, ViewAction>) {
     self.viewStore = ViewStore(store)
   }
-  
-  @State var appearance: Appearance = .minimum
-  @State var date: Date = Date()
-  let oldDate = Date(timeIntervalSince1970: 1649308341)
+
   @State var dragHeight: CGFloat = 90
   let maximumHeight: CGFloat = 670
   let space: CGFloat = 100
@@ -58,7 +50,7 @@ public struct DayView: View {
             
             Spacer()
             
-            Text(date.yearMonthDay())
+            Text(viewStore.selectedDate?.yearMonthDay() ?? "viewStore.selectedDate == nil")
               .onTapGesture {
                 viewStore.send(.showDatePicker)
               }

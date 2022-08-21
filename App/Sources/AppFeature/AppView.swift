@@ -1,4 +1,5 @@
 
+import Combine
 import ComposableArchitecture
 import LocationFeature
 import MapKit
@@ -28,14 +29,29 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
         switch locationAction {
         
         case .startListening:
+          
+          let locations = env.locationClient.getAllSavedLocations().sorted(by: { $0.timestamp < $1.timestamp })
+          print("locations first \(locations.first!) last \(locations.last!)")
+          let locationsFirstDate = locations.first!.timestamp
+          let locationsLastDate = locations.last!.timestamp
+          state.appViewState.datePickerViewState = .init(dateRange: locationsFirstDate...locationsLastDate, date: Date())
+          
+          
           return env.locationClient.startListening()
             .map { AppAction.locationAction(.receivedEvent($0)) }
             
         case .receivedEvent(let event):
           switch event {
           case .location(let location):
-            return Effect(value: AppAction.appViewAction(.mapAction(.gotUpdatedLocation(location))))
-
+            // FIXME: replacing this with
+//            return Effect(value: AppAction.appViewAction(.mapAction(.gotCurrentLocation(location))))
+            break
+            
+          case .updatedLocation:
+            // FIXME: this should be called on mapViewState
+            print(".updateLocation")
+            state.appViewState.mapViewState.currentLocations = env.locationClient.getCurrentLocations()
+            
           default:
             break
             
@@ -47,14 +63,6 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
       case .appViewAction(let appViewAction):
         return .none
         
-//      case .dayViewAction(let dayViewAction):
-//        print(dayViewAction)
-//        switch dayViewAction {
-//        case .showDatePicker:
-//          state.appViewState.isShowingPicker = true
-//        }
-//        return .none
-        
       default:
         return .none
       }
@@ -63,32 +71,27 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
 
 let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironment> = .combine(
   
+  datePickerViewReducer
+    .optional()
+    .pullback(state: \.datePickerViewState,
+              action: /AppView.ViewAction.datePickerViewAction,
+              environment: { $0 }),
+  
   mapViewReducer
   .pullback(state: \.mapViewState,
             action: /AppView.ViewAction.mapAction,
-          environment: { _ in }),
+          environment: { $0 }),
   
   .init { state, action, env in
     switch action {
-    case .showOldLocations:
-      let allLocations = env.locationClient.getAllSavedLocations()
-      return Effect(value: AppView.ViewAction.mapAction(.receivedLocations(allLocations)))
       
     case .deleteRealm:
       env.locationClient.deleteRealm()
       return .none
       
-    case .testAction:
-      env.locationClient.testLocations()
-      return .none
-      
-    case .showLocationsFor(let date):
-      print("show locations for date \(date)")
-      let allLocations = env.locationClient.getAllSavedLocations().filter { Calendar.current.isDate($0.timestamp, equalTo: date, toGranularity: .day) }
-      return Effect(value: AppView.ViewAction.mapAction(.receivedLocations(allLocations)))
-      
     case .mapAction(let mapAction):
       return .none
+      
     case .dayViewAction(let dayViewAction):
       print(dayViewAction)
        switch dayViewAction {
@@ -96,8 +99,50 @@ let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironmen
          state.isShowingPicker = true
        }
        return .none
+      
+    case .binding:
+      return .none
+      
+    case .datePickerViewAction(let datePickerViewAction):
+      switch datePickerViewAction {
+      
+      case .binding:
+        state.dayViewState.selectedDate = state.datePickerViewState!.date
+        state.isShowingPicker = false
+
+        return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(state.datePickerViewState!.date)))
+        
+      case .showAllLocations:
+        break
+        
+      }
+      return .none
     }
-})
+  }//.debug()
+).binding()
+
+public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, AppEnvironment> { state, action, env in
+  
+  switch action {
+  case .showCurrent:
+    let currentLocations = env.locationClient.getCurrentLocations()
+    let mapViewState = MapView.ViewState.init(viewAction: .showAll, currentLocations: currentLocations, oldLocations: [])
+    state = mapViewState
+    
+  case .showAll:
+    let currentLocations = env.locationClient.getCurrentLocations()
+    let allLocations = env.locationClient.getAllSavedLocations()
+    let mapViewState = MapView.ViewState.init(viewAction: .showAll, currentLocations: currentLocations, oldLocations: allLocations)
+    state = mapViewState
+    
+  case .showLocationsFor(let date):
+    let locationsMatchingDate = env.locationClient.getAllSavedLocations().filter { Calendar.current.isDate($0.timestamp, inSameDayAs: date) }
+    let mapViewState = MapView.ViewState.init(viewAction: action, currentLocations: [], oldLocations: locationsMatchingDate)
+    state = mapViewState
+  }
+  
+  return .none
+}//.debug()
 
 struct CoordinateRegion: Equatable {
   static func == (lhs: CoordinateRegion, rhs: CoordinateRegion) -> Bool {
@@ -111,29 +156,30 @@ public struct AppView: View {
   let store: Store<ViewState, ViewAction>
   @ObservedObject var viewStore:  ViewStore<ViewState, ViewAction>
   
-  // ViewState and ViewAction not being used
   public struct ViewState: Equatable {
     public var mapViewState: MapView.ViewState
     var dayViewState: DayView.ViewState
-    var isShowingPicker: Bool
+    var datePickerViewState: DatePickerView.ViewState?
+    @BindableState var isShowingPicker: Bool
     
     public init(mapViewState: MapView.ViewState = .init(),
                 dayViewState: DayView.ViewState = .init(),
+                datePickerViewState: DatePickerView.ViewState? = nil,
                 isShowingPicker: Bool = false) {
       self.mapViewState = mapViewState
       self.dayViewState = dayViewState
       self.isShowingPicker = false
+      self.datePickerViewState = datePickerViewState
     }
   }
   
-  public enum ViewAction: Equatable {
+  public enum ViewAction: BindableAction, Equatable {
+    case binding(BindingAction<ViewState>)
     case deleteRealm
-    case showLocationsFor(Date)
-    case showOldLocations
-    case testAction
     
     case mapAction(MapView.ViewAction)
     case dayViewAction(DayView.ViewAction)
+    case datePickerViewAction(DatePickerView.ViewAction)
   }
   
   public init(store: Store<ViewState, ViewAction>) {
@@ -176,11 +222,69 @@ public struct AppView: View {
         }
       }
     }
+    .popover(isPresented: viewStore.binding(\.$isShowingPicker), content: {
+      IfLetStore(store.scope(state: \.datePickerViewState,
+                             action: ViewAction.datePickerViewAction),
+                 then: { store in
+          DatePickerView(store: store)
+      }, else: {Text("DatePickerViewState is nil...")})
+    })
     .popover(isPresented: $presentingListView, content: {
       MainView()
     })
       .onAppear {
-        viewStore.send(.showOldLocations)
+      
       }
+  }
+}
+
+let datePickerViewReducer = Reducer<DatePickerView.ViewState, DatePickerView.ViewAction, AppEnvironment> { state, action, env in
+  print()
+  print("datePickerViewReducer \(action)")
+  return .none
+}.binding()
+
+public struct DatePickerView: View {
+  public struct ViewState: Equatable {
+    
+    var dateRange: ClosedRange<Date>
+    @BindableState public var date: Date
+    
+    public init(dateRange: ClosedRange<Date>,
+                date: Date) {
+      self.dateRange = dateRange
+      self.date = date
+    }
+  }
+  
+  public enum ViewAction: BindableAction, Equatable {
+    case binding(BindingAction<ViewState>)
+    case showAllLocations
+  }
+  
+  var viewStore: ViewStore<ViewState, ViewAction>
+  
+  public init(store: Store<ViewState, ViewAction>) {
+    self.viewStore = ViewStore(store)
+  }
+  
+  public var body: some View {
+    VStack {
+      Text("Select a date")
+      
+      DatePicker(selection: viewStore.binding(\.$date),
+                 in: viewStore.dateRange,
+                 displayedComponents: .date,
+                 label: {Text("Select a date")})
+        .datePickerStyle(.graphical)
+      
+      Text("or")
+      
+      Button(action: {
+        viewStore.send(.showAllLocations)
+      }, label: {
+        Text("Show all locations")
+      })
+    }
   }
 }

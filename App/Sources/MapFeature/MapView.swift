@@ -4,46 +4,30 @@ import MapKit
 import SwiftUI
 import LoggerFeature
 
-public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, Void> { state, action, _ in
-  
-  switch action {
-  case .gotUpdatedLocation(let location):
-    logger.info("received location mapViewReducer \(location)")
-//    state.currentLocation = location
-    state.locations.append(location)
-    
-  case .receivedLocations(let locations):
-    state.oldLocations = locations
-  }
-  
-  return .none
-}
-
-
 public struct MapView: View {
-  
+
+  public enum ViewAction: Equatable {
+    case showCurrent
+    case showAll
+    case showLocationsFor(Date)
+  }
+
   public struct ViewState: Equatable {
-    public var locations: [CLLocation]
-    public var currentLocation: CLLocation
+    public var currentLocations: [CLLocation]
     public var oldLocations: [CLLocation]
+    public var viewAction: ViewAction
     
-    
-    public init(locations: [CLLocation] = [], currentLocation: CLLocation = .init(), oldLocations: [CLLocation] = []) {
-      self.locations = locations
-      self.currentLocation = currentLocation
+    public init(viewAction: ViewAction = .showAll,
+                currentLocations: [CLLocation] = [],
+                oldLocations: [CLLocation] = []) {
+      self.viewAction = viewAction
       self.oldLocations = oldLocations
+      self.currentLocations = currentLocations
     }
   }
   
-  public enum ViewAction: Equatable {
-    // add to "current line"
-    case gotUpdatedLocation(CLLocation)
-    // Draw all at once in "previous line color"
-    case receivedLocations([CLLocation])
-  }
-  
   var store: Store<ViewState, ViewAction>
-  var viewStore: ViewStore<ViewState, ViewAction>
+  @State var viewStore: ViewStore<ViewState, ViewAction>
   
   public init(store: Store<ViewState, ViewAction>) {
     self.store = store
@@ -52,84 +36,80 @@ public struct MapView: View {
   
   public var body: some View {
     MapViewRepresentable(store: store)
+      .onAppear {
+          self.viewStore.send(.showAll)
+      }
   }
 }
 
 public final class MapViewRepresentable: UIViewRepresentable {
-  
+    
   var mapView = MKMapView()
   var cancellables = Set<AnyCancellable>()
   var coordinatesWereSet: Bool = false
 
   var store: Store<MapView.ViewState, MapView.ViewAction>
-  var viewStore: ViewStore<MapView.ViewState, MapView.ViewAction>
-  var currentPolyline = MyPolyline(lineType: .current)
-  var currentLocations: [CLLocationCoordinate2D] = []
+  let viewStore: ViewStore<MapView.ViewState, MapView.ViewAction>
   
+  var currentPolyline = MyPolyline(lineType: .current)
   var pastPolyline = MyPolyline(lineType: .past)
   var region: MKCoordinateRegion?
+  
+  func showCurrentLocations() {
+    let coordinates = self.viewStore.currentLocations.map { $0.coordinate }
+    let polyline = MyPolyline(coordinates: coordinates, count: coordinates.count)
+
+    self.mapView.addOverlay(polyline)
+    self.mapView.removeOverlay(self.currentPolyline)
+    self.currentPolyline = polyline
+  }
+  
+  func showOldLocations() {
+//    guard self.viewStore.oldLocations.count > 3000 else { return }
+    let oldLocations = self.viewStore.oldLocations//[...3000]
+    print("oldLocations .count \(oldLocations.count)")
+    let polyline = MyPolyline(lineType: .past,
+                              coordinates: oldLocations.map { $0.coordinate })
+    if let location = oldLocations.first, self.region == nil {
+      self.region = MKCoordinateRegion(center: location.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02))
+      self.mapView.setRegion(self.region!, animated: true)
+    }
+    
+    self.mapView.addOverlay(polyline)
+    self.mapView.removeOverlay(pastPolyline)
+    self.pastPolyline = polyline
+  }
   
   init(store: Store<MapView.ViewState, MapView.ViewAction>) {
     self.store = store
     self.viewStore = ViewStore(store)
+    
     mapView.showsUserLocation = true
-//    viewStore.publisher.currentLocation
-//      .filter { $0.coordinate.latitude != 0}
-//      .sink(receiveValue: { location in
-//      logger.info("mapView update location \(location)")
-//      self.currentLocations.append(location.coordinate)
-//      logger.info("currentLocations \(self.currentLocations.count) \(self.currentLocations)")
-//      let _polyline = MyPolyline(coordinates: self.currentLocations, count: self.currentLocations.count)
-//      self.mapView.addOverlay(_polyline)
-//      self.mapView.removeOverlay(self.currentPolyline)
-//      self.currentPolyline = _polyline
-//    })
-//    .store(in: &cancellables)
+    mapView.showsCompass = true
+    mapView.userTrackingMode = .followWithHeading
     
-    viewStore.publisher.locations
-      .removeDuplicates()
-      .filter { $0.count > 0 }
-      .debounce(for: .seconds(1), scheduler: RunLoop.main)
-      .sink(receiveValue: { locations in
-      logger.info("mapView locations \(locations.count)")
-      let coordinates = locations.map { $0.coordinate }
-      let polyline = MyPolyline(coordinates: coordinates, count: coordinates.count)
-
-      self.mapView.addOverlay(polyline)
-      self.mapView.removeOverlay(self.currentPolyline)
-      self.currentPolyline = polyline
-    })
-    .store(in: &cancellables)
-    
-    viewStore.publisher.oldLocations
-      .filter { $0.count > 0 }
-      .sink(receiveValue: { locations in
-        logger.info("mapView past locations \(locations.count)")
-//        let dates = Set(locations.map { $0.timestamp.onlyDayMonthYear() })
-//        let coordinates = locations.map { $0.coordinate }
-//        print("dates \(dates.count)")
-//
-//        var coordinateArrays: [[CLLocation]] = dates.map { date in
-//          return locations.filter { $0.timestamp.onlyDayMonthYear() == date }
-//        }
-        
-        let polyline = MyPolyline(lineType: .past,
-                                  coordinates: locations.map { $0.coordinate })
-        
-//        for (index, day) in coordinateArrays.enumerated() {
-          let randomColor: [UIColor] = [.red, .purple, .green]
-          if let location = locations.first, self.region == nil {
-            self.region = MKCoordinateRegion(center: location.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02))
-            self.mapView.setRegion(self.region!, animated: true)
-          }
+    viewStore.publisher.viewAction
+    //      .removeDuplicates(by: ==)
+      .delay(for: 1, scheduler: RunLoop.main)
+      .sink(receiveValue: { viewAction in
+        print("viewStore.publisher.viewAction \(viewAction)")
+        switch viewAction {
+        case .showCurrent:
+          self.mapView.removeOverlay(self.pastPolyline)
+          self.showCurrentLocations()
           
-          self.mapView.addOverlay(polyline)
-          self.pastPolyline = polyline
-    })
-    .store(in: &cancellables)
-  
+        case .showAll:
+          self.showOldLocations()
+          self.showCurrentLocations()
+          
+        case .showLocationsFor:
+          // remove current show old
+          self.mapView.removeOverlay(self.currentPolyline)
+          self.showOldLocations()
+        }
+      })
+      .store(in: &cancellables)
   }
-  
   
   public func makeUIView(context: Context) -> MKMapView {
     return mapView
@@ -144,13 +124,11 @@ public final class MapViewRepresentable: UIViewRepresentable {
   }
   
   public typealias UIViewType = MKMapView
-  
-  
 }
 
 public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
   public func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
-//    logger.info(mapView )
+    print("didAdd views \(views)")
   }
   
   public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
@@ -158,7 +136,6 @@ public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
     polylineRenderer.lineWidth = 5
     polylineRenderer.strokeColor = .systemPink
     polylineRenderer.lineJoin = .bevel
-//    polylineRenderer.miterLimit
     if let polyline = overlay as? MyPolyline {
       switch polyline.lineType {
       case .current:
@@ -175,16 +152,6 @@ public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
 public enum LineType: Equatable {
   case current
   case past
-}
-
-public struct Polyline: Equatable {
-  var lineType: LineType
-  var polyline: MKPolyline
-  
-  init(lineType: LineType = .current, polyline: MKPolyline) {
-    self.lineType = lineType
-    self.polyline = polyline
-  }
 }
 
 final class MyPolyline: MKPolyline {

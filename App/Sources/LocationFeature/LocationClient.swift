@@ -9,6 +9,7 @@ public struct LocationClient {
   public var startListening: () -> Effect<LocationEvent, Never>
   public var getAllSavedCoordinates: () -> [CLLocationCoordinate2D]
   public var getAllSavedLocations: () -> [CLLocation]
+  public var getCurrentLocations: () -> [CLLocation]
   public var getDistances: () -> Void
   public var deleteRealm: () -> Void
   public var testLocations: () -> Void
@@ -51,6 +52,8 @@ extension LocationClient {
         // print locations...
         //        Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() }).forEach { print($0)}
         return Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() })
+      }, getCurrentLocations: {
+        return locationDelegate.currentLocations
       }, getDistances: {
         let locations = locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp })
         var locationsToDelete: [RealmLocation] = []
@@ -100,18 +103,9 @@ public struct Location: Equatable {
 
 public enum LocationEvent: Equatable, Hashable {
   case location(CLLocation)
+  case updatedLocation
   case message(String)
   case error
-  
-  public func toString() -> String {
-    switch self {
-    case .location(let location):
-      return "\(location.timestamp.description(with: .current)) lat: \(String(format: "%3.3f", location.coordinate.latitude)) long: \(String(format: "%3.3f", location.coordinate.longitude))"
-    case .message(let message):
-      return message
-    case .error: return "error"
-    }
-  }
 }
 
 final class LocationDelegate: NSObject, CLLocationManagerDelegate {
@@ -119,6 +113,13 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
   let realm: Realm
   // cache the last saved location to avoid checking db every time location is received
   var lastSavedLocation: CLLocation?
+  
+  var currentLocations: [CLLocation] = [] {
+    didSet(newValue) {
+      print("updated currentLocations")
+      publisher.send(.updatedLocation)
+    }
+  }
   
   override init() {
     var config = Realm.Configuration(shouldCompactOnLaunch: { totalBytes, usedBytes in
@@ -142,6 +143,7 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
     
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     logger.info("received locations: \(locations.count)")
+    // FIXME: don't get this from database, store this in KeyChain
     guard let mostRecentLocation = locations.last else { return }
     if lastSavedLocation == nil {
       lastSavedLocation = realm.objects(RealmLocation.self).max(by: { $0.timestamp < $1.timestamp})?.location()
@@ -172,7 +174,8 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
         try realm.write {
           realm.add(RealmLocation(location: mostRecentLocation))
         }
-        publisher.send(.location(mostRecentLocation) )
+        currentLocations.append(mostRecentLocation)
+//        publisher.send(.location(mostRecentLocation) )
       } catch {
         logger.info("error saving realm \(error)")
       }

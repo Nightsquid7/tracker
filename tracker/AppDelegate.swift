@@ -9,9 +9,7 @@ import UIKit
 import RealmSwift
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
- 
 
-  
   let locationManager = CLLocationManager()
   let store  = Store(
     initialState: .init(),
@@ -31,7 +29,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .provisional, .alert], completionHandler: { result, error in
       print("result, \(result) error \(error)")
     })
-    
     
     viewStore.send(.locationAction(.startListening))
 //    AppDelegate.notification(title: "testing", body: "nothing")
