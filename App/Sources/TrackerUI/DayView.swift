@@ -13,7 +13,8 @@ public struct DayView: View {
   
   public enum ViewAction: Equatable {
     case showDatePicker
-    
+    case showPreviousDate
+    case showNextDate
   }
   
   var viewStore: ViewStore<ViewState, ViewAction>
@@ -45,19 +46,25 @@ public struct DayView: View {
         VStack {
 
           HStack {
-            Button(action: {print("left")}, label: {Image(systemName: "chevron.left")})
+            Button(action: {
+              print("left")
+              viewStore.send(.showPreviousDate)
+            }, label: {Image(systemName: "chevron.left")})
               .frame(width: 100, height: 100)
             
             Spacer()
             
-            Text(viewStore.selectedDate?.yearMonthDay() ?? "viewStore.selectedDate == nil")
+            Text(viewStore.selectedDate?.yearMonthDay() ?? "All")
               .onTapGesture {
                 viewStore.send(.showDatePicker)
               }
             
             Spacer()
             
-            Button(action: {print("right")}, label: {Image(systemName: "chevron.right")})
+            Button(action: {
+              print("right")
+              viewStore.send(.showNextDate)
+            }, label: {Image(systemName: "chevron.right")})
               .frame(width: 100, height: 100)
           }
           

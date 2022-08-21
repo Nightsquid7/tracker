@@ -97,8 +97,33 @@ let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironmen
        switch dayViewAction {
        case .showDatePicker:
          state.isShowingPicker = true
+         return .none
+         
+       case .showPreviousDate:
+         guard let date = state.dayViewState.selectedDate,
+               let previousDate = Calendar.current.date(byAdding: .day, value: -1, to: date),
+               let earliestDate = state.datePickerViewState?.dateRange.lowerBound,
+               previousDate >= earliestDate
+         else {
+           print("didn't have date selected or date is out of range")
+           return .none
+         }
+         state.dayViewState.selectedDate = previousDate
+         return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(previousDate)))
+         
+       case .showNextDate:
+         guard let date = state.dayViewState.selectedDate,
+               let nextDate = Calendar.current.date(byAdding: .day, value: 1, to: date),
+               nextDate <= Date()
+         else {
+           print("didn't have date selected or date is out of range")
+           return .none
+         }
+         state.dayViewState.selectedDate = nextDate
+         return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(nextDate)))
+         
        }
-       return .none
+
       
     case .binding:
       return .none
@@ -113,10 +138,11 @@ let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironmen
         return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(state.datePickerViewState!.date)))
         
       case .showAllLocations:
-        break
+        state.dayViewState.selectedDate = nil
+        state.isShowingPicker = false
+        return Effect(value: AppView.ViewAction.mapAction(.showAll))
         
       }
-      return .none
     }
   }//.debug()
 ).binding()
@@ -136,6 +162,9 @@ public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, AppEn
     state = mapViewState
     
   case .showLocationsFor(let date):
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yy-mm-dd"
+    print("\(dateFormatter.string(from: date))")
     let locationsMatchingDate = env.locationClient.getAllSavedLocations().filter { Calendar.current.isDate($0.timestamp, inSameDayAs: date) }
     let mapViewState = MapView.ViewState.init(viewAction: action, currentLocations: [], oldLocations: locationsMatchingDate)
     state = mapViewState

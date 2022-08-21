@@ -57,7 +57,8 @@ public final class MapViewRepresentable: UIViewRepresentable {
   
   func showCurrentLocations() {
     let coordinates = self.viewStore.currentLocations.map { $0.coordinate }
-    let polyline = MyPolyline(coordinates: coordinates, count: coordinates.count)
+    logger.debug("showCurrentLocations \(coordinates.count)")
+    let polyline = MyPolyline(lineType: .current, coordinates: coordinates)
 
     self.mapView.addOverlay(polyline)
     self.mapView.removeOverlay(self.currentPolyline)
@@ -65,8 +66,7 @@ public final class MapViewRepresentable: UIViewRepresentable {
   }
   
   func showOldLocations() {
-//    guard self.viewStore.oldLocations.count > 3000 else { return }
-    let oldLocations = self.viewStore.oldLocations//[...3000]
+    let oldLocations = self.viewStore.oldLocations
     print("oldLocations .count \(oldLocations.count)")
     let polyline = MyPolyline(lineType: .past,
                               coordinates: oldLocations.map { $0.coordinate })
@@ -90,7 +90,7 @@ public final class MapViewRepresentable: UIViewRepresentable {
     
     viewStore.publisher.viewAction
     //      .removeDuplicates(by: ==)
-      .delay(for: 1, scheduler: RunLoop.main)
+      .delay(for: 0.2, scheduler: RunLoop.main)
       .sink(receiveValue: { viewAction in
         print("viewStore.publisher.viewAction \(viewAction)")
         switch viewAction {
