@@ -6,6 +6,10 @@
 	<array>
 		<string>_pulse._tcp</string>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Gbboot-ALpM.ttf</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

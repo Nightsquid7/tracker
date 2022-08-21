@@ -32,11 +32,17 @@ let package = Package(
                 "LoggerFeature",
                 "MapFeature",
                 "TrackerUI",
+                "Assets",
                 .productItem(name: "Pulse",
                              package: "Pulse"),
                 .productItem(name: "PulseUI",
                              package: "Pulse"),
                     ]),
+
+        .target(name: "Assets",
+                resources: [
+                  .process("Resources.xcassets")
+                ]),
               
         .target(name: "LoggerFeature", dependencies: [.productItem(name: "Pulse",
                                                                    package: "Pulse"),]),
