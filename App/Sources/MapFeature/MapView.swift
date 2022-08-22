@@ -3,6 +3,7 @@ import ComposableArchitecture
 import MapKit
 import SwiftUI
 import LoggerFeature
+import Assets
 
 public struct MapView: View {
 
@@ -127,6 +128,13 @@ public final class MapViewRepresentable: UIViewRepresentable {
 }
 
 public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
+  
+  var whaleImages: UIImage
+  
+  override init() {
+    whaleImages = UIImage(named: "my_whale_64x64", in: assetsBundle, with: nil)!
+  }
+  
   public func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
     print("didAdd views \(views)")
   }
@@ -147,7 +155,23 @@ public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
     
     return polylineRenderer
   }
+  
+  
+  
+  public func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+    print("annotation", annotation)
+
+    if let userLocation = annotation as? MKUserLocation {
+      print("user location \(userLocation)")
+      let view = MKAnnotationView()
+      view.image = whaleImages
+      return view
+    }
+    return nil
+  }
 }
+
+
 
 public enum LineType: Equatable {
   case current

@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "my_whale_tracker_app_icon_1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
