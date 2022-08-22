@@ -217,38 +217,43 @@ public struct AppView: View {
   }
   
   @State var presentingListView: Bool = false
-  @State var dayViewHeight: CGFloat = 400
+  @State var dayViewHeight: CGFloat = 70
   
   public var body: some View {
     GeometryReader { g in
   
       ZStack {
+        
         MapView(store: store.scope(state: \.mapViewState, action: ViewAction.mapAction))
+          .frame(height: g.size.height - dayViewHeight)
+          .offset(y: -dayViewHeight)
        
-        VStack(spacing: 0) {
-          HStack {
-            Button (action: {
-              presentingListView.toggle()
-            }, label: {
-              ZStack {
-                
-                RoundedRectangle(cornerRadius: 7)
-                  .strokeBorder()
-                
-                Image(systemName: "gear")
-              }
-            })
-            .frame(width: 60, height: 50)
+          VStack(spacing: 0) {
+            HStack {
+              Button (action: {
+                presentingListView.toggle()
+              }, label: {
+                ZStack {
+                  
+                  RoundedRectangle(cornerRadius: 20)
+                    .foregroundColor(.white)
+                  
+                  Image(systemName: "gear")
+                }
+              })
+              
+              .frame(width: 60, height: 50)
+              
+              Spacer()
+            }
+            .frame(height: 50)
             
             Spacer()
+            
+            DayView(store: store.scope(state: \.dayViewState,
+                                       action: ViewAction.dayViewAction))
+            
           }
-          .frame(height: 50)
-          
-          Spacer()
-          
-          DayView(store: store.scope(state: \.dayViewState,
-                                     action: ViewAction.dayViewAction))
-        }
       }
     }
     .popover(isPresented: viewStore.binding(\.$isShowingPicker), content: {
@@ -317,3 +322,5 @@ public struct DatePickerView: View {
     }
   }
 }
+
+

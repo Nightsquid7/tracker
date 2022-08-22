@@ -41,8 +41,6 @@ public struct DayView: View {
   public var body: some View {
     GeometryReader { g in
       ZStack {
-          Rectangle()
-          .foregroundColor(.white)
         
         VStack {
 
@@ -56,22 +54,28 @@ public struct DayView: View {
               }
               )
               .frame(width: 100, height: 70)
-            }
+            
             
             Spacer()
-            
-            Text(viewStore.selectedDate?.yearMonthDay() ?? "All")
-              .font(.custom("G.B.BOOT", size: 25))
-              .onTapGesture {
+              
+              Button(action: {
                 viewStore.send(.showDatePicker)
-              }
-              .onAppear  {
-                print("UIFont.familyNames \(UIFont.familyNames)")
-              }
+              },
+                     label: {
+                ZStack {
+                  RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(lineWidth: 2)
+                    .foregroundColor(.black)
+                  
+                  Text(viewStore.selectedDate?.yearMonthDay() ?? "...")
+                    .foregroundColor(.black)
+                    .font(.custom("G.B.BOOT", size: 25))
+                }
+              })
             
             Spacer()
             
-            if viewStore.selectedDate != nil {
+            
               Button(action: {
                 print("right")
                 viewStore.send(.showNextDate)
@@ -79,10 +83,23 @@ public struct DayView: View {
                 Image("chevron_right", bundle: assetsBundle)
               })
               .frame(width: 100, height: 70)
+            } else {
+              
+              Button(action: {
+                viewStore.send(.showDatePicker)
+              }, label: {
+                ZStack {
+                  RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(lineWidth: 2)
+                    .foregroundColor(.black)
+                  
+                  Text("All")
+                    .foregroundColor(.black)
+                    .font(.custom("G.B.BOOT", size: 25))
+                }
+              })
             }
           }
-          
-//          Spacer()
         }
       }
       .onAppear {
