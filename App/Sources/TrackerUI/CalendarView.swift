@@ -2,78 +2,73 @@ import Assets
 import ComposableArchitecture
 import SwiftUI
 
-
-
 public struct CalendarView: View {
   
   public struct ViewState: Equatable {
     public var date: Date
+    public var daysColumnViewStates: [DaysColumnView.ViewState] = []
+    
+    public func getViewStates(_ newDate: Date) -> [DaysColumnView.ViewState] {
+      var viewStates: [DaysColumnView.ViewState] = []
+      let dateData = newDate.getYearMonthDay()!
+      let firstDay = dateData.firstWeekday - 1
+      let numberOfDays = dateData.numDays
+      var dayNumbers = (1...numberOfDays).map { $0 }
+      if firstDay > 1 {
+        let prevRange = (1..<firstDay).map { _ in -1 }
+        dayNumbers = prevRange + dayNumbers
+      }
+      let remainingDayCount = 42 - dayNumbers.count
+      dayNumbers += (remainingDayCount..<dayNumbers.count).map { _ in -1 }
+ 
+      var dayIndexes: [[Int]] = []
+      for num in  1...7 {
+        var nums: [Int] = []
+        for j in 0...5 {
+          let adjustedCalendarDay = (num + (j * 7)) - 1
+          nums.append(adjustedCalendarDay)
+        }
+        dayIndexes.append(nums)
+        let days = nums.map { index in
+          let date = Date.dateFrom(year: dateData.year, month: dateData.month, day: dayNumbers[index])!
+          return Day.init(date: date, number: dayNumbers[index])
+        }
+        var dayString = ""
+        switch num {
+        case 1:
+          dayString = "Mon"
+        case 2:
+          dayString = "Tue"
+        case 3:
+          dayString = "Wed"
+        case 4:
+          dayString = "Thu"
+        case 5:
+          dayString = "Fri"
+        case 6:
+          dayString = "Sat"
+        case 7:
+          dayString = "Sun"
+        default:
+          break
+        }
+        let daysColumnViewState = DaysColumnView.ViewState.init(day: dayString, days: days)
+        viewStates.append(daysColumnViewState)
+      }
+      return viewStates
+    }
   }
   
   public enum ViewAction: Equatable {
     case showDate(Date)
-    case showMonth(Int)
+    case showMonth(Date)
   }
   
   let viewStore: ViewStore<ViewState, ViewAction>
 
   public init(store: Store<ViewState, ViewAction>) {
     self.viewStore = ViewStore(store)
-    
-    let dateData = viewStore.date.getYearMonthDay()!
-    
-    var firstDay = dateData.firstWeekday - 1
-    let numberOfDays = dateData.numDays
-    var dayNumbers = (1...numberOfDays).map { $0 }
-    print("firstDay \(firstDay)")
-    if firstDay > 1 {
-      let prevRange = (1..<firstDay).map { _ in -1 }
-      dayNumbers = prevRange + dayNumbers
-    }
-    let remainingDayCount = 42 - dayNumbers.count
-    dayNumbers += (remainingDayCount..<dayNumbers.count).map { _ in -1 }
-    print("DayNumbers \(dayNumbers)")
-    
-    var dayIndexes: [[Int]] = []
-    for num in  1...7 {
-      var nums: [Int] = []
-      for j in 0...5 {
-        let adjustedCalendarDay = (num + (j * 7)) - 1
-        nums.append(adjustedCalendarDay)
-      }
-      print(nums)
-      dayIndexes.append(nums)
-      let days = nums.map { index in
-        let date = Date.dateFrom(year: dateData.year, month: dateData.month, day: dayNumbers[index])!
-        return Day.init(date: date, number: dayNumbers[index])
-      }
-      print("days \(days)")
-      var dayString = ""
-      switch num {
-      case 1:
-        dayString = "Mon"
-      case 2:
-        dayString = "Tue"
-      case 3:
-        dayString = "Wed"
-      case 4:
-        dayString = "Thu"
-      case 5:
-        dayString = "Fri"
-      case 6:
-        dayString = "Sat"
-      case 7:
-        dayString = "Sun"
-      default:
-        break
-      }
-      let daysColumnViewState = DaysColumnView.ViewState.init(day: dayString, days: days)
-      daysColumnViewStates.append(daysColumnViewState)
-    }
-    print("dateData \(dateData)")
   }
-  
-  var daysColumnViewStates: [DaysColumnView.ViewState] = []
   
   var columnSpacing: CGFloat = 7
   public var body: some View {
@@ -83,6 +78,11 @@ public struct CalendarView: View {
         HStack {
           Button(action: {
             print("left")
+            let info = viewStore.date.getYearMonthDay()!
+            // FIME: avoid force unwrapping
+            let prevDate = Date.dateFrom(year: info.year, month: info.month - 1, day: info.day)!
+            
+            viewStore.send(.showMonth(prevDate))
           }, label: {
             Image("chevron_left", bundle: assetsBundle)
           })
@@ -93,6 +93,9 @@ public struct CalendarView: View {
           
           Button(action: {
             print("right")
+            let info = viewStore.date.getYearMonthDay()!
+            let nextDate = Date.dateFrom(year: info.year, month: info.month + 1, day: info.day)!
+            viewStore.send(.showMonth(nextDate))
           }, label: {
             Image("chevron_right", bundle: assetsBundle)
           })
@@ -100,7 +103,7 @@ public struct CalendarView: View {
         }
         
         HStack {
-          ForEach(daysColumnViewStates, id: \.self) { viewState in
+          ForEach(viewStore.daysColumnViewStates, id: \.self) { viewState in
             DaysColumnView(viewState: viewState) { date in
               viewStore.send(.showDate(date))
             }
@@ -110,18 +113,20 @@ public struct CalendarView: View {
       }
       
     }
+    .onAppear {
+      viewStore.send(.showMonth(viewStore.date))
+    }
   }
 }
 
-
-struct Day: Hashable, Equatable {
+public struct Day: Hashable, Equatable {
   var date: Date
   var number: Int
 }
 
-struct DaysColumnView: View {
+public struct DaysColumnView: View {
   
-  struct ViewState: Hashable, Equatable {
+  public struct ViewState: Hashable, Equatable {
     var day: String
     var days: [Day?]
     public init(day: String, days: [Day]) {
@@ -142,7 +147,7 @@ struct DaysColumnView: View {
 
         ForEach(viewState.days, id: \.self) { day in
           Button(action: {
-            guard let day = day else { return }
+            guard let day = day, day.number > 0 else { return }
             action(day.date)
           }, label: {
             Text("\(day?.number ?? -7)")

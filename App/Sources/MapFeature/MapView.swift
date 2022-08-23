@@ -96,8 +96,10 @@ public final class MapViewRepresentable: UIViewRepresentable {
         print("viewStore.publisher.viewAction \(viewAction)")
         switch viewAction {
         case .showCurrent:
-          self.mapView.removeOverlay(self.pastPolyline)
-          self.showCurrentLocations()
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.mapView.removeOverlay(self.pastPolyline)
+            self.showCurrentLocations() 
+          }
           
         case .showAll:
           self.showOldLocations()

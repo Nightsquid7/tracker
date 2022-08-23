@@ -104,6 +104,9 @@ public struct DayView: View {
       }
       .onAppear {
         dragHeight = g.size.height - 90
+        
+        // DEBUG
+//        viewStore.send(.showDatePicker)
       }
       .frame(height: height(parent: g.size.height))
       .offset(y: offset(parent: g.size.height))
@@ -119,3 +122,4 @@ extension Date {
     return dateFormatter.string(from: self)
   }
 }
+
