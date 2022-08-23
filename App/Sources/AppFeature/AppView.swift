@@ -146,6 +146,8 @@ let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironmen
       case .calendarViewAction(let calendarViewAction):
         if case let .showDate(date) = calendarViewAction {
           state.isShowingPicker = false
+          
+          state.dayViewState.selectedDate = date
           return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(date)))
         }
         
@@ -286,7 +288,7 @@ public struct AppView: View {
 
 let datePickerViewReducer = Reducer<DatePickerView.ViewState, DatePickerView.ViewAction, AppEnvironment> { state, action, env in
   print()
-  print("datePickerViewReducer \(action)")
+//  print("datePickerViewReducer \(action)")
   
   return .none
 }.binding()

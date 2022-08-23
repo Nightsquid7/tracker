@@ -8,11 +8,11 @@ public struct CalendarView: View {
   
   public struct ViewState: Equatable {
     public var date: Date
-    
   }
   
   public enum ViewAction: Equatable {
     case showDate(Date)
+    case showMonth(Int)
   }
   
   let viewStore: ViewStore<ViewState, ViewAction>
@@ -68,20 +68,12 @@ public struct CalendarView: View {
         break
       }
       let daysColumnViewState = DaysColumnView.ViewState.init(day: dayString, days: days)
-      daysColumnViewStates[num - 1].days = days
+      daysColumnViewStates.append(daysColumnViewState)
     }
     print("dateData \(dateData)")
   }
   
-  var daysColumnViewStates: [DaysColumnView.ViewState] = [
-    .init(day: "Mon", days: []),
-    .init(day: "Tue", days: []),
-    .init(day: "Wed", days: []),
-    .init(day: "Thu", days: []),
-    .init(day: "Fri", days: []),
-    .init(day: "Sat", days: []),
-    .init(day: "Sun", days: [])
-  ]
+  var daysColumnViewStates: [DaysColumnView.ViewState] = []
   
   var columnSpacing: CGFloat = 7
   public var body: some View {
@@ -96,7 +88,7 @@ public struct CalendarView: View {
           })
           .frame(width: 100, height: 70)
           
-          Text("Month")
+          Text(verbatim: "\(viewStore.date.getYearMonthDay()!.year)/\(String(format: "%02d", viewStore.date.getYearMonthDay()!.month))")
             .font(.custom("G.B.BOOT", size: 25))
           
           Button(action: {
