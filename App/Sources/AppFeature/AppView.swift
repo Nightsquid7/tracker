@@ -8,6 +8,7 @@ import LoggerFeature
 import PulseUI
 import SwiftUI
 import TrackerUI
+import Assets
 
 public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
   appDelegateReducer
@@ -132,16 +133,23 @@ let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironmen
       switch datePickerViewAction {
       
       case .binding:
-        state.dayViewState.selectedDate = state.datePickerViewState!.date
+        state.dayViewState.selectedDate = state.datePickerViewState!.calendarViewState.date
         state.isShowingPicker = false
 
-        return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(state.datePickerViewState!.date)))
+        return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(state.dayViewState.selectedDate!)))
         
       case .showAllLocations:
         state.dayViewState.selectedDate = nil
         state.isShowingPicker = false
         return Effect(value: AppView.ViewAction.mapAction(.showAll))
         
+      case .calendarViewAction(let calendarViewAction):
+        if case let .showDate(date) = calendarViewAction {
+          state.isShowingPicker = false
+          return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(date)))
+        }
+        
+        return .none
       }
     }
   }//.debug()
@@ -238,6 +246,10 @@ public struct AppView: View {
                   RoundedRectangle(cornerRadius: 20)
                     .foregroundColor(.white)
                   
+                  RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(lineWidth: 2)
+                    .foregroundColor(.black)
+                  
                   Image(systemName: "gear")
                 }
               })
@@ -275,52 +287,7 @@ public struct AppView: View {
 let datePickerViewReducer = Reducer<DatePickerView.ViewState, DatePickerView.ViewAction, AppEnvironment> { state, action, env in
   print()
   print("datePickerViewReducer \(action)")
+  
   return .none
 }.binding()
-
-public struct DatePickerView: View {
-  public struct ViewState: Equatable {
-    
-    var dateRange: ClosedRange<Date>
-    @BindableState public var date: Date
-    
-    public init(dateRange: ClosedRange<Date>,
-                date: Date) {
-      self.dateRange = dateRange
-      self.date = date
-    }
-  }
-  
-  public enum ViewAction: BindableAction, Equatable {
-    case binding(BindingAction<ViewState>)
-    case showAllLocations
-  }
-  
-  var viewStore: ViewStore<ViewState, ViewAction>
-  
-  public init(store: Store<ViewState, ViewAction>) {
-    self.viewStore = ViewStore(store)
-  }
-  
-  public var body: some View {
-    VStack {
-      Text("Select a date")
-      
-      DatePicker(selection: viewStore.binding(\.$date),
-                 in: viewStore.dateRange,
-                 displayedComponents: .date,
-                 label: {Text("Select a date")})
-        .datePickerStyle(.graphical)
-      
-      Text("or")
-      
-      Button(action: {
-        viewStore.send(.showAllLocations)
-      }, label: {
-        Text("Show all locations")
-      })
-    }
-  }
-}
-
 
