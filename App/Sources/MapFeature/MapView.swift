@@ -105,10 +105,39 @@ public final class MapViewRepresentable: UIViewRepresentable {
           self.showOldLocations()
           self.showCurrentLocations()
           
+          
         case .showLocationsFor:
           // remove current show old
           self.mapView.removeOverlay(self.currentPolyline)
           self.showOldLocations()
+          let oldLocations = self.viewStore.oldLocations
+          guard oldLocations.count > 10 else { return }
+          let jankCenter = oldLocations[oldLocations.count / 2]
+          let firstCoord = oldLocations.first!
+          let lastCoord = oldLocations.last!
+          let distance = firstCoord.distance(from: lastCoord)
+          
+          var span: MKCoordinateSpan = .init()
+          switch distance {
+          case 1...100:
+            span = .init(latitudeDelta: 0.05, longitudeDelta: 0.05)
+          case 100...1_000:
+            span = .init(latitudeDelta: 0.1, longitudeDelta: 0.1)
+          case 1_000...10_000:
+            span = .init(latitudeDelta: 0.25, longitudeDelta: 0.25)
+          case 10_000...20_000:
+            span = .init(latitudeDelta: 0.4, longitudeDelta: 0.4)
+          case 20_000...100_000:
+            span = .init(latitudeDelta: 0.9, longitudeDelta: 0.9)
+          default:
+            break
+          }
+          print("distance", distance)
+          let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: jankCenter.coordinate.latitude,
+                                                                         longitude: jankCenter.coordinate.longitude), span: span)
+          
+          self.mapView.region = region
+          
         }
       })
       .store(in: &cancellables)
