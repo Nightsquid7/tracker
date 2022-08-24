@@ -59,6 +59,7 @@ public final class MapViewRepresentable: UIViewRepresentable {
   func showCurrentLocations() {
     let coordinates = self.viewStore.currentLocations.map { $0.coordinate }
     logger.debug("showCurrentLocations \(coordinates.count)")
+    print("showCurrentLocations \(coordinates.count)")
     let polyline = MyPolyline(lineType: .current, coordinates: coordinates)
 
     self.mapView.addOverlay(polyline)
@@ -81,6 +82,36 @@ public final class MapViewRepresentable: UIViewRepresentable {
     self.pastPolyline = polyline
   }
   
+  func centerMapOnLocations(_ locations: [CLLocation]) {
+    guard locations.count > 10 else { return }
+    let jankCenter = locations[locations.count / 2]
+    let firstCoord = locations.first!
+    let lastCoord = locations.last!
+    let distance = firstCoord.distance(from: lastCoord)
+    
+    var span: MKCoordinateSpan = .init()
+    switch distance {
+    case 1...100:
+      span = .init(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    case 100...1_000:
+      span = .init(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    case 1_000...10_000:
+      span = .init(latitudeDelta: 0.25, longitudeDelta: 0.25)
+    case 10_000...20_000:
+      span = .init(latitudeDelta: 0.4, longitudeDelta: 0.4)
+    case 20_000...100_000:
+      span = .init(latitudeDelta: 0.9, longitudeDelta: 0.9)
+    default:
+      break
+    }
+    print("distance", distance)
+    let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: jankCenter.coordinate.latitude,
+                                                                   longitude: jankCenter.coordinate.longitude), span: span)
+    
+    self.mapView.region = region
+    
+  }
+  
   init(store: Store<MapView.ViewState, MapView.ViewAction>) {
     self.store = store
     self.viewStore = ViewStore(store)
@@ -89,17 +120,32 @@ public final class MapViewRepresentable: UIViewRepresentable {
     mapView.showsCompass = true
     mapView.userTrackingMode = .followWithHeading
     
+    viewStore.publisher.currentLocations.sink(receiveValue: { currentLocations in
+      print("got current locations \(currentLocations.count)")
+      switch self.viewStore.viewAction {
+      case .showCurrent:
+        self.mapView.removeOverlay(self.pastPolyline)
+        self.showCurrentLocations()
+        self.centerMapOnLocations(self.viewStore.currentLocations)
+      case .showAll:
+        self.showCurrentLocations()
+      case .showLocationsFor:
+//        self.mapView.removeOverlay(self.currentPolyline)
+//        self.mapView.removeOverlay(self.pastPolyline)
+        break
+      }
+      
+    })
+    .store(in: &cancellables)
+    
     viewStore.publisher.viewAction
-    //      .removeDuplicates(by: ==)
-      .delay(for: 0.2, scheduler: RunLoop.main)
+      .removeDuplicates(by: ==)
+      .delay(for: 0.1, scheduler: RunLoop.main)
       .sink(receiveValue: { viewAction in
         print("viewStore.publisher.viewAction \(viewAction)")
         switch viewAction {
         case .showCurrent:
-          DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.mapView.removeOverlay(self.pastPolyline)
-            self.showCurrentLocations() 
-          }
+          break
           
         case .showAll:
           self.showOldLocations()
@@ -110,34 +156,7 @@ public final class MapViewRepresentable: UIViewRepresentable {
           // remove current show old
           self.mapView.removeOverlay(self.currentPolyline)
           self.showOldLocations()
-          let oldLocations = self.viewStore.oldLocations
-          guard oldLocations.count > 10 else { return }
-          let jankCenter = oldLocations[oldLocations.count / 2]
-          let firstCoord = oldLocations.first!
-          let lastCoord = oldLocations.last!
-          let distance = firstCoord.distance(from: lastCoord)
-          
-          var span: MKCoordinateSpan = .init()
-          switch distance {
-          case 1...100:
-            span = .init(latitudeDelta: 0.05, longitudeDelta: 0.05)
-          case 100...1_000:
-            span = .init(latitudeDelta: 0.1, longitudeDelta: 0.1)
-          case 1_000...10_000:
-            span = .init(latitudeDelta: 0.25, longitudeDelta: 0.25)
-          case 10_000...20_000:
-            span = .init(latitudeDelta: 0.4, longitudeDelta: 0.4)
-          case 20_000...100_000:
-            span = .init(latitudeDelta: 0.9, longitudeDelta: 0.9)
-          default:
-            break
-          }
-          print("distance", distance)
-          let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: jankCenter.coordinate.latitude,
-                                                                         longitude: jankCenter.coordinate.longitude), span: span)
-          
-          self.mapView.region = region
-          
+          self.centerMapOnLocations(self.viewStore.oldLocations)
         }
       })
       .store(in: &cancellables)
@@ -147,7 +166,7 @@ public final class MapViewRepresentable: UIViewRepresentable {
     return mapView
   }
   
-  public func updateUIView(_ uiView: MKMapView, context: Context) {}
+  public func updateUIView(_ uiView: MKMapView, context: Context) {print("update mapView...")}
   
   public func makeCoordinator() -> MapViewCoordinator {
     let coordinator = MapViewCoordinator()
@@ -200,6 +219,10 @@ public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
     }
     return nil
   }
+  
+  public func mapView(_ mapView: MKMapView, didAdd renderers: [MKOverlayRenderer]) {
+    print("did add renderers")
+  }
 }
 
 
@@ -231,5 +254,11 @@ extension Date {
   func onlyDayMonthYear() -> Date {
     let components = Calendar.current.dateComponents([.year, .month, .day], from: self)
     return Calendar.current.date(from: components)!
+  }
+  
+  func formatted() -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yy-mm-dd"
+    return dateFormatter.string(from: self)
   }
 }

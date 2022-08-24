@@ -50,7 +50,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
             
           case .updatedLocation:
             // FIXME: this should be called on mapViewState
-            print(".updateLocation")
+            print(".updatedLocation")
             state.appViewState.mapViewState.currentLocations = env.locationClient.getCurrentLocations()
             
           default:
@@ -162,20 +162,26 @@ public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, AppEn
   
   switch action {
   case .showCurrent:
-    let currentLocations = env.locationClient.getCurrentLocations()
-    let mapViewState = MapView.ViewState.init(viewAction: .showAll, currentLocations: currentLocations, oldLocations: [])
+    let todaySavedLocations = env.locationClient.getAllSavedLocations()
+      .filter { Calendar.current.isDate($0.timestamp, inSameDayAs: Date()) }
+    let currentLocations = env.locationClient.getCurrentLocations() + todaySavedLocations
+    let mapViewState = MapView.ViewState.init(viewAction: .showCurrent, currentLocations: currentLocations, oldLocations: [])
     state = mapViewState
     
   case .showAll:
-    let currentLocations = env.locationClient.getCurrentLocations()
+    let todaySavedLocations = env.locationClient.getAllSavedLocations()
+      .filter { Calendar.current.isDate($0.timestamp, inSameDayAs: Date()) }
+    let currentLocations = env.locationClient.getCurrentLocations() + todaySavedLocations
     let allLocations = env.locationClient.getAllSavedLocations()
     let mapViewState = MapView.ViewState.init(viewAction: .showAll, currentLocations: currentLocations, oldLocations: allLocations)
     state = mapViewState
     
   case .showLocationsFor(let date):
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yy-mm-dd"
-    print("\(dateFormatter.string(from: date))")
+    if Calendar.current.isDate(date, inSameDayAs: Date()) {
+//      env.locationClient.testLocations() // DEBUG
+      return Effect(value: .showCurrent)
+    }
+    
     let locationsMatchingDate = env.locationClient.getAllSavedLocations().filter { Calendar.current.isDate($0.timestamp, inSameDayAs: date) }
     let mapViewState = MapView.ViewState.init(viewAction: action, currentLocations: [], oldLocations: locationsMatchingDate)
     state = mapViewState
