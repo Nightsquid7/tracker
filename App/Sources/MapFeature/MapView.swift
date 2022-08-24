@@ -83,7 +83,15 @@ public final class MapViewRepresentable: UIViewRepresentable {
   }
   
   func centerMapOnLocations(_ locations: [CLLocation]) {
-    guard locations.count > 10 else { return }
+    guard locations.count > 10 else {
+      if let location = locations.first {
+        let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: location.coordinate.latitude,
+                                                                       longitude: location.coordinate.longitude),
+                                        span: .init(latitudeDelta: 0.1, longitudeDelta: 0.1))
+        
+        self.mapView.region = region
+      }
+      return }
     let jankCenter = locations[locations.count / 2]
     let firstCoord = locations.first!
     let lastCoord = locations.last!
