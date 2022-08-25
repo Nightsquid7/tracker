@@ -32,11 +32,9 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
         case .startListening:
           
           let locations = env.locationClient.getAllSavedLocations().sorted(by: { $0.timestamp < $1.timestamp })
-          print("locations first \(locations.first!) last \(locations.last!)")
-          let locationsFirstDate = locations.first!.timestamp
-          let locationsLastDate = locations.last!.timestamp
-          state.appViewState.datePickerViewState = .init(dateRange: locationsFirstDate...locationsLastDate, date: Date())
-          
+          if let locationsFirstDate = locations.first?.timestamp, let locationsLastDate = locations.last?.timestamp {
+            state.appViewState.datePickerViewState = .init(dateRange: locationsFirstDate...locationsLastDate, date: Date())
+          }
           
           return env.locationClient.startListening()
             .map { AppAction.locationAction(.receivedEvent($0)) }
@@ -71,6 +69,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
 )
 
 let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironment> = .combine(
+  
   
   datePickerViewReducer
     .optional()
@@ -154,6 +153,22 @@ let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironmen
         
         return .none
       }
+    case .settingsViewAction(let settingsViewAction):
+      switch settingsViewAction {
+      case .updateDistanceFilter(let distance):
+        print("update Distance Filter \(distance)")
+        env.locationClient.setDistanceFilter(distance)
+
+      case .startTestData:
+        env.locationClient.startUpdatingTestLocations()
+        
+        
+
+      default:
+        break
+      }
+            
+      return .none
     }
   }//.debug()
 ).binding()
@@ -178,7 +193,6 @@ public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, AppEn
     
   case .showLocationsFor(let date):
     if Calendar.current.isDate(date, inSameDayAs: Date()) {
-//      env.locationClient.testLocations() // DEBUG
       return Effect(value: .showCurrent)
     }
     
@@ -206,26 +220,29 @@ public struct AppView: View {
     public var mapViewState: MapView.ViewState
     var dayViewState: DayView.ViewState
     var datePickerViewState: DatePickerView.ViewState?
+    var settingsViewState: TrackerUI.SettingsView.ViewState
     @BindableState var isShowingPicker: Bool
     
     public init(mapViewState: MapView.ViewState = .init(),
                 dayViewState: DayView.ViewState = .init(),
                 datePickerViewState: DatePickerView.ViewState? = nil,
-                isShowingPicker: Bool = false) {
+                isShowingPicker: Bool = false,
+                settingsViewState: TrackerUI.SettingsView.ViewState = .init()) {
       self.mapViewState = mapViewState
       self.dayViewState = dayViewState
       self.isShowingPicker = false
       self.datePickerViewState = datePickerViewState
+      self.settingsViewState = settingsViewState
     }
   }
   
   public enum ViewAction: BindableAction, Equatable {
     case binding(BindingAction<ViewState>)
     case deleteRealm
-    
     case mapAction(MapView.ViewAction)
     case dayViewAction(DayView.ViewAction)
     case datePickerViewAction(DatePickerView.ViewAction)
+    case settingsViewAction(TrackerUI.SettingsView.ViewAction)
   }
   
   public init(store: Store<ViewState, ViewAction>) {
@@ -285,7 +302,7 @@ public struct AppView: View {
       }, else: {Text("DatePickerViewState is nil...")})
     })
     .popover(isPresented: $presentingListView, content: {
-      MainView()
+      TrackerUI.SettingsView(store: store.scope(state: \.settingsViewState, action: ViewAction.settingsViewAction))
     })
       .onAppear {
       
@@ -310,3 +327,15 @@ let datePickerViewReducer = Reducer<DatePickerView.ViewState, DatePickerView.Vie
   return .none
 }.binding()
 
+let settingsViewReducer = Reducer<TrackerUI.SettingsView.ViewState, TrackerUI.SettingsView.ViewAction, AppEnvironment> { state, action, env in
+  switch action {
+  
+  case .updateDistanceFilter(let distance):
+    break
+  case .binding(_):
+    break
+  case .startTestData:
+    break
+  }
+  return .none
+}

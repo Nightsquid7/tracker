@@ -12,7 +12,8 @@ public struct LocationClient {
   public var getCurrentLocations: () -> [CLLocation]
   public var getDistances: () -> Void
   public var deleteRealm: () -> Void
-  public var testLocations: () -> Void
+  public var startUpdatingTestLocations: () -> Void
+  public var setDistanceFilter: (CGFloat) -> Void
 }
 
 
@@ -49,12 +50,9 @@ extension LocationClient {
       },
       
       getAllSavedLocations: {
-        // print locations...
-        //        Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() }).forEach { print($0)}
         return Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() })
       }, getCurrentLocations: {
-//        // DEBUG
-//        return Array(_testLocations[..<testCount])
+
         return locationDelegate.currentLocations
         
       }, getDistances: {
@@ -78,16 +76,17 @@ extension LocationClient {
           locationDelegate.realm.deleteAll()
         }
       },
-      testLocations: {
+      startUpdatingTestLocations: {
         print("Test locations")
-
-        
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { _ in
           guard testCount < _testLocations.count else { return }
           locationDelegate.currentLocations.append(_testLocations[testCount])
           testCount += 1
           print("increment count \(testCount)")
         }).fire()
+        
+      }, setDistanceFilter: { distance in
+        locationManager.distanceFilter = distance
       }
     )
   }

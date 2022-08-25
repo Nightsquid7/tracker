@@ -92,6 +92,20 @@ public final class MapViewRepresentable: UIViewRepresentable {
         self.mapView.region = region
       }
       return }
+    
+    guard let first = locations.first, let last = locations.last else { return }
+    
+    
+    let size: Double = 100
+    let firstRect = MKMapRect(origin: .init(first.coordinate), size: .init(width: size, height: size))
+    let lastRect =  MKMapRect(origin: .init(last.coordinate), size: .init(width: size, height: size))
+    let midRect = MKMapRect(origin: .init(locations[locations.count / 2].coordinate), size: .init(width: size, height: size))
+    
+    self.mapView.region = MKCoordinateRegion(firstRect.union(lastRect).union(midRect))
+
+    return
+    
+    
     let jankCenter = locations[locations.count / 2]
     let firstCoord = locations.first!
     let lastCoord = locations.last!
@@ -134,7 +148,11 @@ public final class MapViewRepresentable: UIViewRepresentable {
       case .showCurrent:
         self.mapView.removeOverlay(self.pastPolyline)
         self.showCurrentLocations()
-        self.centerMapOnLocations(self.viewStore.currentLocations)
+        guard let last = currentLocations.last else { return }
+        let lastRect = MKMapRect(origin: .init(last.coordinate), size: .init(width: 1000, height: 1000))
+        self.mapView.region = MKCoordinateRegion(center: last.coordinate, latitudinalMeters: 100, longitudinalMeters: 100)
+        
+        return
       case .showAll:
         self.showCurrentLocations()
       case .showLocationsFor:
