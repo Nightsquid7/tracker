@@ -1,17 +1,21 @@
 import ComposableArchitecture
 import CoreLocation
 import SwiftUI
+import PulseUI
 
 public struct SettingsView: View {
   
   public struct ViewState: Equatable {
     @BindableState var distanceFilter: CGFloat
     @BindableState var desiredAccuracy:  CLLocationAccuracy
+    @BindableState public var showingConsole: Bool
     
     public init(distanceFilter: CLLocationDistance = 10,
-                desiredAccuracy: CLLocationAccuracy  = kCLLocationAccuracyBest) {
+                desiredAccuracy: CLLocationAccuracy  = kCLLocationAccuracyBest,
+                showingConsole: Bool = false) {
       self.distanceFilter = distanceFilter
       self.desiredAccuracy = desiredAccuracy
+      self.showingConsole = showingConsole
     }
   }
   
@@ -19,6 +23,7 @@ public struct SettingsView: View {
     case binding(BindingAction<ViewState>)
     case updateDistanceFilter(CGFloat)
     case startTestData
+    case showConsole
   }
   
   let viewStore: ViewStore<ViewState, ViewAction>
@@ -34,7 +39,9 @@ public struct SettingsView: View {
     VStack {
       List {
         Section {
-          Button(action: {}, label: {
+          Button(action: {
+            viewStore.send(.showConsole)
+          }, label: {
             Text("Console")
               .foregroundColor(.black)
               .font(.custom("G.B.BOOT", size: 21))
@@ -68,6 +75,9 @@ public struct SettingsView: View {
         }
       }
 
+    }
+    .popover(isPresented: viewStore.binding(\.$showingConsole)){
+      MainView()
     }
     
   }

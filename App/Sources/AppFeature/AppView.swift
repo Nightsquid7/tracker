@@ -10,6 +10,9 @@ import SwiftUI
 import TrackerUI
 import Assets
 
+// Temp
+import UIKit
+
 public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
   appDelegateReducer
     .pullback(state: \.appDelegateState,
@@ -34,6 +37,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
           let locations = env.locationClient.getAllSavedLocations().sorted(by: { $0.timestamp < $1.timestamp })
           if let locationsFirstDate = locations.first?.timestamp, let locationsLastDate = locations.last?.timestamp {
             state.appViewState.datePickerViewState = .init(dateRange: locationsFirstDate...locationsLastDate, date: Date())
+            dPrint("state.appViewState.datePickerViewState?.dateRange \(state.appViewState.datePickerViewState?.dateRange)")
           }
           
           return env.locationClient.startListening()
@@ -50,7 +54,11 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
             // FIXME: this should be called on mapViewState
             print(".updatedLocation")
             state.appViewState.mapViewState.currentLocations = env.locationClient.getCurrentLocations()
-            
+          case .authorizationStatusChanged(let authorizationStatus):
+//            let vc = .rootViewController?.topMostViewController()
+            dPrint("\(authorizationStatus)")
+            break
+          
           default:
             break
             
@@ -69,7 +77,11 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
 )
 
 let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironment> = .combine(
-  
+  settingsViewReducer
+    .binding()
+    .pullback(state: \.settingsViewState,
+              action: /AppView.ViewAction.settingsViewAction,
+              environment: { $0 }),
   
   datePickerViewReducer
     .optional()
@@ -161,9 +173,7 @@ let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironmen
 
       case .startTestData:
         env.locationClient.startUpdatingTestLocations()
-        
-        
-
+      
       default:
         break
       }
@@ -182,7 +192,7 @@ public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, AppEn
     let currentLocations = env.locationClient.getCurrentLocations() + todaySavedLocations
     let mapViewState = MapView.ViewState.init(viewAction: .showCurrent, currentLocations: currentLocations, oldLocations: [])
     state = mapViewState
-    
+//    state._action
   case .showAll:
     let todaySavedLocations = env.locationClient.getAllSavedLocations()
       .filter { Calendar.current.isDate($0.timestamp, inSameDayAs: Date()) }
@@ -277,6 +287,7 @@ public struct AppView: View {
                     .foregroundColor(.black)
                   
                   Image(systemName: "gear")
+                    .foregroundColor(.black)
                 }
               })
               
@@ -336,6 +347,9 @@ let settingsViewReducer = Reducer<TrackerUI.SettingsView.ViewState, TrackerUI.Se
     break
   case .startTestData:
     break
+  case .showConsole:
+    state.showingConsole = true
   }
   return .none
 }
+  

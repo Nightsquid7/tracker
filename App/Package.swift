@@ -15,11 +15,13 @@ let package = Package(
             name: "App",
             targets: ["AppFeature"]),
     ],
-    
+
     dependencies: [
          .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.35.0"),
          .package(url: "https://github.com/realm/realm-swift.git", from: "10.28.2"),
-         .package(url: "https://github.com/kean/Pulse", from: "1.1.0")
+         .package(url: "https://github.com/kean/Pulse", from: "1.1.0"),
+         .package(url: "https://github.com/mapbox/mapbox-maps-ios.git", from: "10.7.0")
+         
     ],
     
     targets: [
@@ -64,6 +66,8 @@ let package = Package(
                            package: "swift-composable-architecture"),
                   .productItem(name: "Pulse",
                                package: "Pulse"),
+                  .productItem(name: "MapboxMaps",
+                               package: "mapbox-maps-ios"),
                   "LoggerFeature",
               
                 ]),
