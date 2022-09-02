@@ -168,24 +168,15 @@ public struct MapViewRepresentable: UIViewRepresentable {
   
   public func updateUIView(_ uiView: MKMapView, context: Context) {
     print("update mapView... \(uiView) mapView \(mapView)")
-    
-    
-    dPrint("ViewStore state \(viewStore.state)")
+
     let currentLocations = viewStore.currentLocations
     let oldLocations = viewStore.oldLocations
+    
     switch viewStore.state.viewAction {
     case .showLocationsFor(let date):
       dPrint("show locations for date \(date)")
-      uiView.removeOverlays(
-        uiView.overlays.filter {
-          guard let polyline = $0 as? MyPolyline else { return false}
-          if polyline.lineType == .current {
-            dPrint("remove polynine type current \(polyline.pointCount)")
-            return true }
-          return false
-        }
-      )
-      let coordinates = currentLocations.map { $0.coordinate }
+      uiView.removeOverlays(uiView.overlays)
+      let coordinates = oldLocations.map { $0.coordinate }
       let polyline = MyPolyline(lineType: .current, coordinates: coordinates)
       uiView.addOverlay(polyline)
       
