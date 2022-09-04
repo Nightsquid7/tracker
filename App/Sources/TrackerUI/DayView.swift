@@ -6,9 +6,12 @@ public struct DayView: View {
 
   public struct ViewState: Equatable {
     public var selectedDate: Date?
+    public var dateRange: ClosedRange<Date>?
     
-    public init(selectedDate: Date? = nil) {
+    public init(selectedDate: Date? = nil,
+                dateRange: ClosedRange<Date>? = nil) {
       self.selectedDate = selectedDate
+      self.dateRange = dateRange
     }
   }
   
@@ -85,18 +88,9 @@ public struct DayView: View {
               .frame(width: 100, height: 70)
             } else {
               
-              Button(action: {
+              RoundedOutlineButton(text: "\(viewStore.dateRange?.lowerBound.yearMonthDay() ?? "") ~ \(Date().yearMonthDay())",
+                                   action: {
                 viewStore.send(.showDatePicker)
-              }, label: {
-                ZStack {
-                  RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(lineWidth: 2)
-                    .foregroundColor(.black)
-                  
-                  Text("All")
-                    .foregroundColor(.black)
-                    .font(.custom("G.B.BOOT", size: 25))
-                }
               })
             }
           }

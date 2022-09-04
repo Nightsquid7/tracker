@@ -36,28 +36,43 @@ public struct DatePickerView: View {
       
       CalendarView(store: store.scope(state: \.calendarViewState,
                                       action: ViewAction.calendarViewAction))
+      .padding(.horizontal, 8)
+      
+      RoundedOutlineButton(text: "show today", action: { viewStore.send(.calendarViewAction(.showDate(Date())))})
+        .frame(height: 70)
       
       Text("or")
         .font(.custom("G.B.BOOT", size: 25))
       
       Spacer()
        
-      Button(action: {
-        viewStore.send(.showAllLocations)
-      }, label: {
-        ZStack {
-          RoundedRectangle(cornerRadius: 20)
-            .strokeBorder(lineWidth: 2)
-            .foregroundColor(.black)
-          
-          Text("Show all locations")
-            .foregroundColor(.black)
-            .font(.custom("G.B.BOOT", size: 25))
-        }
-      })
+      RoundedOutlineButton(text: "show all locations", action: { viewStore.send(.showAllLocations)})
       .frame(height: 70)
     }
   }
 }
 
 
+struct RoundedOutlineButton: View {
+  
+  var text: String
+  var action: () -> Void
+  
+  public var body: some View {
+    Button(action: {
+      action()
+    }, label: {
+      ZStack {
+        RoundedRectangle(cornerRadius: 20)
+          .strokeBorder(lineWidth: 2)
+          .foregroundColor(.black)
+        
+        Text(text)
+          .foregroundColor(.black)
+          .font(.custom("G.B.BOOT", size: 25))
+      }
+    })
+//    .frame(height: 70)
+    .padding(.horizontal, 8)
+  }
+}

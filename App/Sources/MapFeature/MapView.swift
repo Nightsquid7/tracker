@@ -180,6 +180,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
       let oldCoordinates = oldLocations.map { $0.coordinate }
       let oldPolyline = MyPolyline(lineType: .past, coordinates: oldCoordinates)
       uiView.addOverlay(oldPolyline)
+      centerMapOnLocations(oldLocations, mapView: uiView)
       
     case .showCurrent:
       dPrint("Show current")

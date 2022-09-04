@@ -36,7 +36,9 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
           
           let locations = env.locationClient.getAllSavedLocations().sorted(by: { $0.timestamp < $1.timestamp })
           if let locationsFirstDate = locations.first?.timestamp, let locationsLastDate = locations.last?.timestamp {
-            state.appViewState.datePickerViewState = .init(dateRange: locationsFirstDate...locationsLastDate, date: Date())
+            let dateRange: ClosedRange<Date> = locationsFirstDate...locationsLastDate
+            state.appViewState.dayViewState.dateRange = dateRange
+            state.appViewState.datePickerViewState = .init(dateRange: dateRange, date: Date())
             dPrint("state.appViewState.datePickerViewState?.dateRange \(state.appViewState.datePickerViewState?.dateRange)")
           }
           
@@ -164,9 +166,12 @@ let appViewReducer: Reducer<AppView.ViewState, AppView.ViewAction, AppEnvironmen
           state.dayViewState.selectedDate = date
           return Effect(value: AppView.ViewAction.mapAction(.showLocationsFor(date)))
         }
-        
-        
         return .none
+        
+//      case .showCurrentLocations:
+//        state.isShowingPicker = false
+//        return Effect(value: AppView.ViewAction.mapAction(.showCurrent))
+        
       }
     case .settingsViewAction(let settingsViewAction):
       switch settingsViewAction {
@@ -279,6 +284,9 @@ public struct AppView: View {
           .offset(y: -dayViewHeight)
        
           VStack(spacing: 0) {
+            Spacer()
+              .frame(height: 32)
+            
             HStack {
               Button (action: {
                 presentingListView.toggle()
@@ -287,10 +295,7 @@ public struct AppView: View {
                   
                   RoundedRectangle(cornerRadius: 20)
                     .foregroundColor(.white)
-                  
-//                  RoundedRectangle(cornerRadius: 20)
-//                    .strokeBorder(lineWidth: 2)
-//                    .foregroundColor(.black)
+
                   
                   Image(systemName: "gear")
                     .foregroundColor(.black)
@@ -310,6 +315,7 @@ public struct AppView: View {
             
           }
       }
+      .edgesIgnoringSafeArea(.top)
     }
     .popover(isPresented: viewStore.binding(\.$isShowingPicker), content: {
       IfLetStore(store.scope(state: \.datePickerViewState,
