@@ -39,7 +39,7 @@ extension LocationClient {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.distanceFilter = 10
         locationManager.startUpdatingLocation()
-        locationManager.activityType = .otherNavigation
+        locationManager.activityType = .fitness
         locationManager.startMonitoringSignificantLocationChanges()
         locationManager.startUpdatingLocation()
         
@@ -81,8 +81,6 @@ extension LocationClient {
           cachedRealmLocations = Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() })
         }
         dPrint("getAllSavedLocations \(cachedRealmLocations.count)")
-//        // DEBUG
-//        return _testLocations
         return cachedRealmLocations
       }, getCurrentLocations: {
 
@@ -111,12 +109,10 @@ extension LocationClient {
       },
       startUpdatingTestLocations: {
         print("Test locations")
-//        Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { _ in
           guard testCount < _testLocations.count else { return }
           locationDelegate.currentLocations.append(_testLocations[testCount])
           testCount += 1
           print("increment count \(testCount)")
-//        }).fire()
         
       }, getAllTestLocations: {
         return _testLocations
@@ -191,7 +187,7 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
     
     dPrint("mostRecentLocation speed: \(mostRecentLocation.speed) .distance(from: lastSavedLocation) \(mostRecentLocation.distance(from: lastSavedLocation)) \n \(mostRecentLocation)")
     
-    if mostRecentLocation.distance(from: lastSavedLocation) > 10 && mostRecentLocation.speed > 0 {
+    if mostRecentLocation.distance(from: lastSavedLocation) > 10 && mostRecentLocation.speed > 1 {
         dPrint("save point with distance \(mostRecentLocation.distance(from: lastSavedLocation)), speed: \(mostRecentLocation.speed)")
       do {
         try realm.write {

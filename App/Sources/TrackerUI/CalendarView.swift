@@ -1,12 +1,14 @@
 import Assets
 import ComposableArchitecture
 import SwiftUI
+import LoggerFeature
 
 public struct CalendarView: View {
   
   public struct ViewState: Equatable {
     public var date: Date
     public var daysColumnViewStates: [DaysColumnView.ViewState] = []
+    public var dateRange: ClosedRange<Date>
     
     public func getViewStates(_ newDate: Date) -> [DaysColumnView.ViewState] {
       var viewStates: [DaysColumnView.ViewState] = []
@@ -31,7 +33,7 @@ public struct CalendarView: View {
         dayIndexes.append(nums)
         let days = nums.map { index -> Day in
           let date = Date.dateFrom(year: dateData.year, month: dateData.month, day: dayNumbers[index])!
-          return Day.init(date: date, number: dayNumbers[index])
+          return Day.init(date: date, number: dayNumbers[index], isEnabled: dateRange.contains(date))
         }
         var dayString = ""
         switch num {
@@ -122,6 +124,7 @@ public struct CalendarView: View {
 public struct Day: Hashable, Equatable {
   var date: Date
   var number: Int
+  let isEnabled: Bool
 }
 
 public struct DaysColumnView: View {
@@ -147,13 +150,13 @@ public struct DaysColumnView: View {
 
         ForEach(viewState.days, id: \.self) { day in
           Button(action: {
-            guard let day = day, day.number > 0 else { return }
+            guard let day = day, day.number > 0, day.isEnabled else { return }
             action(day.date)
           }, label: {
             Text("\(day?.number ?? -7)")
               .font(.custom("G.B.BOOT", size: 25))
               .opacity(day?.number ?? -1 < 1 ? 0 : 1)
-              .foregroundColor(.black)
+              .foregroundColor(day?.isEnabled ?? false ? .black : .gray)
               .frame(height: (g.size.height / 6) - spacing)
           })
         }

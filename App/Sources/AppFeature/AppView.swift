@@ -209,6 +209,9 @@ public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, AppEn
     let locationsMatchingDate = env.locationClient.getAllSavedLocations().filter { Calendar.current.isDate($0.timestamp, inSameDayAs: date) }
     let mapViewState = MapView.ViewState.init(viewAction: action, currentLocations: [], oldLocations: locationsMatchingDate)
     state = mapViewState
+    
+  case .centerMap(let uuid):
+    state.viewAction = .centerMap(uuid)
   }
   
   return .none
@@ -282,9 +285,9 @@ public struct AppView: View {
                   RoundedRectangle(cornerRadius: 20)
                     .foregroundColor(.white)
                   
-                  RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(lineWidth: 2)
-                    .foregroundColor(.black)
+//                  RoundedRectangle(cornerRadius: 20)
+//                    .strokeBorder(lineWidth: 2)
+//                    .foregroundColor(.black)
                   
                   Image(systemName: "gear")
                     .foregroundColor(.black)
@@ -292,7 +295,7 @@ public struct AppView: View {
               })
               
               .frame(width: 60, height: 50)
-              
+              .padding(.leading, 8)
               Spacer()
             }
             .frame(height: 50)

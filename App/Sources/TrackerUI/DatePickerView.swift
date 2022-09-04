@@ -4,13 +4,14 @@ import SwiftUI
 public struct DatePickerView: View {
   public struct ViewState: Equatable {
     
+    // FIXME: remove dateRange here since it is now in calendarViewState
     public var dateRange: ClosedRange<Date>
     @BindableState public var calendarViewState: CalendarView.ViewState
     
     public init(dateRange: ClosedRange<Date>,
                 date: Date) {
       self.dateRange = dateRange
-      self.calendarViewState = .init(date: date)
+      self.calendarViewState = .init(date: date, dateRange: dateRange)
     }
   }
   
