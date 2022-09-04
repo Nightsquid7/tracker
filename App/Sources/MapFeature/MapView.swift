@@ -4,7 +4,7 @@ import MapKit
 import SwiftUI
 import LoggerFeature
 import Assets
-import MapboxMaps
+//import MapboxMaps
 import Foundation
 
 public struct MapView: View {
@@ -312,30 +312,30 @@ extension Date {
 }
 
 
-public struct _MBMapView: UIViewRepresentable {
-  
-  var frame: CGRect
-
-  var store: Store<MapView.ViewState, MapView.ViewAction>
-  var viewStore: ViewStore<MapView.ViewState, MapView.ViewAction>
-
-  
-  init(frame: CGRect, store: Store<MapView.ViewState, MapView.ViewAction>, cancellables: Set<AnyCancellable>) {
-    self.frame = frame
-    self.store = store
-    self.viewStore = ViewStore(store)
-  }
-  
-  public func updateUIView(_ uiView: MapboxMaps.MapView, context: Context) {
-  }
-  
-  public func makeUIView(context: Context) -> MapboxMaps.MapView {
-    guard let accessToken = ProcessInfo.processInfo.environment["mapboxAccessToken"] else { fatalError() }
-    dPrint("_MBMapView ")
-    
-    let myResourceOptions = ResourceOptions(accessToken: accessToken)
-    let myMapInitOptions = MapInitOptions(resourceOptions: myResourceOptions)
-    let mapView = MapboxMaps.MapView(frame: frame, mapInitOptions: myMapInitOptions)
-    return mapView
-  }
-}
+//public struct _MBMapView: UIViewRepresentable {
+//  
+//  var frame: CGRect
+//
+//  var store: Store<MapView.ViewState, MapView.ViewAction>
+//  var viewStore: ViewStore<MapView.ViewState, MapView.ViewAction>
+//
+//  
+//  init(frame: CGRect, store: Store<MapView.ViewState, MapView.ViewAction>, cancellables: Set<AnyCancellable>) {
+//    self.frame = frame
+//    self.store = store
+//    self.viewStore = ViewStore(store)
+//  }
+//  
+//  public func updateUIView(_ uiView: MapboxMaps.MapView, context: Context) {
+//  }
+//  
+//  public func makeUIView(context: Context) -> MapboxMaps.MapView {
+//    guard let accessToken = ProcessInfo.processInfo.environment["mapboxAccessToken"] else { fatalError() }
+//    dPrint("_MBMapView ")
+//    
+//    let myResourceOptions = ResourceOptions(accessToken: accessToken)
+//    let myMapInitOptions = MapInitOptions(resourceOptions: myResourceOptions)
+//    let mapView = MapboxMaps.MapView(frame: frame, mapInitOptions: myMapInitOptions)
+//    return mapView
+//  }
+//}
