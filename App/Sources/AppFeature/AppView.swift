@@ -46,16 +46,19 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
         case .receivedEvent(let event):
           switch event {
           case .location(let location):
-            // FIXME: replacing this with
-//            return Effect(value: AppAction.appViewAction(.mapAction(.gotCurrentLocation(location))))
             break
             
           case .updatedLocation:
             // FIXME: this should be called on mapViewState
-            print(".updatedLocation")
-            state.appViewState.mapViewState.currentLocations = env.locationClient.getCurrentLocations()
+            dPrint(".updatedLocation")
+            switch state.appViewState.mapViewState.viewAction {
+            case .showCurrent:
+              state.appViewState.mapViewState.currentLocations = env.locationClient.getCurrentLocations()
+            default:
+              dPrint("don.t update current location state")
+            }
+            
           case .authorizationStatusChanged(let authorizationStatus):
-//            let vc = .rootViewController?.topMostViewController()
             dPrint("\(authorizationStatus)")
             break
           

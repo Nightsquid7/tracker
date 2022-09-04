@@ -83,7 +83,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
   var pastPolyline = MyPolyline(lineType: .past)
   var region: MKCoordinateRegion?
   
-  func centerMapOnLocations(_ locations: [CLLocation]) {
+  func centerMapOnLocations(_ locations: [CLLocation], mapView: MKMapView) {
     guard locations.count > 10 else {
       if let location = locations.first {
         let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: location.coordinate.latitude,
@@ -96,10 +96,16 @@ public struct MapViewRepresentable: UIViewRepresentable {
     guard let first = locations.first, let last = locations.last else { return }
     
     
-    let size: Double = 100
-    let firstRect = MKMapRect(origin: .init(first.coordinate), size: .init(width: size, height: size))
-    let lastRect =  MKMapRect(origin: .init(last.coordinate), size: .init(width: size, height: size))
-    let midRect = MKMapRect(origin: .init(locations[locations.count / 2].coordinate), size: .init(width: size, height: size))
+    let size: MKMapSize = .init(width: 100, height: 100)
+    let firstRect = MKMapRect(origin: .init(first.coordinate), size: size)
+    let lastRect =  MKMapRect(origin: .init(last.coordinate), size: size)
+    let midRect = MKMapRect(origin: .init(locations[locations.count / 2].coordinate), size: size)
+    var otherRect = firstRect
+    for index in stride(from: 0, through: locations.count, by: 100) {
+      otherRect = otherRect.union(MKMapRect(origin: .init(locations[index].coordinate), size: size))
+    }
+    
+    mapView.region = .init(midRect.union(lastRect).union(otherRect).insetBy(dx: -5000, dy: -5000))
     
     return
     
@@ -128,8 +134,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
     let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: jankCenter.coordinate.latitude,
                                                                    longitude: jankCenter.coordinate.longitude), span: span)
     
-    self.mapView.region = region
-    
+    mapView.region = region
   }
   
   init(_ viewStore: ViewStore<MapView.ViewState, MapView.ViewAction>) {
@@ -163,6 +168,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
       let coordinates = oldLocations.map { $0.coordinate }
       let polyline = MyPolyline(lineType: .current, coordinates: coordinates)
       uiView.addOverlay(polyline)
+      centerMapOnLocations(oldLocations, mapView: uiView)
       
     case .showAll:
       dPrint("Show all")
