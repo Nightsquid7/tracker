@@ -36,9 +36,9 @@ let package = Package(
                 "TrackerUI",
                 "Assets",
                 .productItem(name: "Pulse",
-                             package: "Pulse"),
+                             package: "Pulse", condition: nil),
                 .productItem(name: "PulseUI",
-                             package: "Pulse"),
+                             package: "Pulse", condition: nil),
                     ]),
 
         .target(name: "Assets",
@@ -47,7 +47,7 @@ let package = Package(
                 ]),
               
         .target(name: "LoggerFeature", dependencies: [.productItem(name: "Pulse",
-                                                                   package: "Pulse"),]),
+                                                                   package: "Pulse", condition: nil),]),
         .target(name: "LocationFeature",
                 dependencies: [
                   .product(name: "ComposableArchitecture",
@@ -57,7 +57,7 @@ let package = Package(
                     "Models",
                     "LoggerFeature",
                     .productItem(name: "Pulse",
-                                 package: "Pulse"),
+                                 package: "Pulse", condition: nil),
                 ]),
       
         .target(name: "MapFeature",
@@ -65,7 +65,7 @@ let package = Package(
                   .product(name: "ComposableArchitecture",
                            package: "swift-composable-architecture"),
                   .productItem(name: "Pulse",
-                               package: "Pulse"),
+                               package: "Pulse", condition: nil),
 //                  .productItem(name: "MapboxMaps",
 //                               package: "mapbox-maps-ios"),
                   "LoggerFeature",
@@ -75,7 +75,7 @@ let package = Package(
         .target(name: "Models", dependencies: [
           .product(name: "RealmSwift", package: "realm-swift"),
           .productItem(name: "Pulse",
-                       package: "Pulse"),
+                       package: "Pulse", condition: nil),
         ]),
       
         .target(name: "TrackerUI",
@@ -86,9 +86,9 @@ let package = Package(
 //                  "LoggerFeature",
                   "MapFeature",
                   .productItem(name: "Pulse",
-                               package: "Pulse"),
+                               package: "Pulse", condition: nil),
                   .productItem(name: "PulseUI",
-                               package: "Pulse"),
+                               package: "Pulse", condition: nil),
                       ]),
                 
       ]

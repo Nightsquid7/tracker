@@ -29,7 +29,7 @@ public struct CalendarView: View {
           nums.append(adjustedCalendarDay)
         }
         dayIndexes.append(nums)
-        let days = nums.map { index in
+        let days = nums.map { index -> Day in
           let date = Date.dateFrom(year: dateData.year, month: dateData.month, day: dayNumbers[index])!
           return Day.init(date: date, number: dayNumbers[index])
         }

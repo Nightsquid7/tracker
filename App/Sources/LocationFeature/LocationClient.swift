@@ -4,6 +4,7 @@ import CoreLocation
 import Models
 import RealmSwift
 import LoggerFeature
+import UIKit
 
 public struct LocationClient {
   public var startListening: () -> Effect<LocationEvent, Never>
