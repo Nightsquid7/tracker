@@ -50,6 +50,7 @@ extension LocationClient {
 
           case .authorizationStatusChanged(let authorizationStatus):
             dPrint("authorizationStatusChanged")
+            
             switch authorizationStatus {
             case .authorizedAlways, .authorizedWhenInUse:
               dPrint("authorizationStatus always or whenInUse")

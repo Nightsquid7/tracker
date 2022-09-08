@@ -9,6 +9,7 @@ public struct SettingsView: View {
     @BindableState var distanceFilter: CGFloat
     @BindableState var desiredAccuracy:  CLLocationAccuracy
     @BindableState public var showingConsole: Bool
+    public var locationAuthorizationStatus: String = ""
     
     public init(distanceFilter: CLLocationDistance = 10,
                 desiredAccuracy: CLLocationAccuracy  = kCLLocationAccuracyBest,
@@ -24,6 +25,7 @@ public struct SettingsView: View {
     case updateDistanceFilter(CGFloat)
     case startTestData
     case showConsole
+    case updatedLocationStatus(CLAuthorizationStatus)
   }
   
   let viewStore: ViewStore<ViewState, ViewAction>
@@ -47,22 +49,35 @@ public struct SettingsView: View {
               .font(.custom("G.B.BOOT", size: 21))
           })
         }
-        
-        Section {
-            Text("Sensitivity")
-              .foregroundColor(.black)
-              .font(.custom("G.B.BOOT", size: 21))
-          
-          Slider(value: $distanceFilter, in: 1...100)
-          
+        Section (content: {
           Button(action: {
-            viewStore.send(.updateDistanceFilter(distanceFilter))
+            // FIXME: add this to reducer...
+            UIApplication.shared.open(URL(string:UIApplication.openSettingsURLString)!)
           }, label: {
-            Text("Update")
+            Text(viewStore.locationAuthorizationStatus)
               .foregroundColor(.black)
-              .font(.custom("G.B.BOOT", size: 16))
+              .gameboy(size: 21)
           })
-        }
+        }, header: {
+          Text("Location authorization status")
+            .foregroundColor(.gray)
+            .gameboy(size: 17)
+        })
+//        Section {
+//            Text("Sensitivity")
+//              .foregroundColor(.black)
+//              .font(.custom("G.B.BOOT", size: 21))
+//
+//          Slider(value: $distanceFilter, in: 1...100)
+//
+//          Button(action: {
+//            viewStore.send(.updateDistanceFilter(distanceFilter))
+//          }, label: {
+//            Text("Update")
+//              .foregroundColor(.black)
+//              .font(.custom("G.B.BOOT", size: 16))
+//          })
+//        }
         
         Section {
           Button(action: {
@@ -70,7 +85,8 @@ public struct SettingsView: View {
           }, label: {
             Text("Start sending test location data")
               .foregroundColor(.black)
-              .font(.custom("G.B.BOOT", size: 21))
+              .gameboy(size: 21)
+
           })
         }
       }
@@ -80,5 +96,12 @@ public struct SettingsView: View {
       MainView()
     }
     
+  }
+}
+
+extension Text {
+  func gameboy(size: CGFloat) -> some View {
+    return self
+      .font(.custom("G.B.BOOT", size: size))
   }
 }

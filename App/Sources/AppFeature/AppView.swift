@@ -62,7 +62,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
             
           case .authorizationStatusChanged(let authorizationStatus):
             dPrint("\(authorizationStatus)")
-            break
+            return Effect(value: .appViewAction(.settingsViewAction(.updatedLocationStatus(authorizationStatus))))
           
           default:
             break
@@ -361,6 +361,16 @@ let settingsViewReducer = Reducer<TrackerUI.SettingsView.ViewState, TrackerUI.Se
     break
   case .showConsole:
     state.showingConsole = true
+    
+  case .updatedLocationStatus(let authorizationStatus):
+    switch authorizationStatus {
+    case .authorizedAlways, .authorizedWhenInUse:
+      state.locationAuthorizationStatus = "authorized"
+    case .notDetermined, .restricted,  .denied:
+      state.locationAuthorizationStatus = "not authorized"
+    @unknown default:
+      state.locationAuthorizationStatus = "woah something weird happened..."
+    }
   }
   return .none
 }
