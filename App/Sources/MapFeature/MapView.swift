@@ -59,10 +59,15 @@ public struct MapView: View {
               ZStack {
                 RoundedRectangle(cornerRadius: 14)
                   .foregroundColor(.white)
-                  .frame(width: 60, height: 50)
                   .padding(8)
+                
+                Image("locationButton", bundle: assetsBundle)
+                  .resizable()
+                  .aspectRatio(contentMode: .fit)
+                  .frame(width: 16, height: 16)
               }
             })
+            .frame(width: 60, height: 50)
           }
           
         }

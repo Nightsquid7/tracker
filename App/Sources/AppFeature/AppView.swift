@@ -304,6 +304,7 @@ public struct AppView: View {
               
               .frame(width: 60, height: 50)
               .padding(.leading, 8)
+              
               Spacer()
             }
             .frame(height: 50)
