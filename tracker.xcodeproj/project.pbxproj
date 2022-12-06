@@ -12,6 +12,7 @@
 		5318CA6928850FC4008FDE8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5318CA6828850FC4008FDE8E /* Assets.xcassets */; };
 		5318CA6C28850FC4008FDE8E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5318CA6B28850FC4008FDE8E /* Preview Assets.xcassets */; };
 		5318CA79288513C8008FDE8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5318CA78288513C8008FDE8E /* AppDelegate.swift */; };
+		531DE3CF293F02C500DEEBAE /* _splash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 531DE3CE293F02C500DEEBAE /* _splash.storyboard */; };
 		53D5934B28B2F13E001426DF /* Gbboot-ALpM.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 53D5934A28B2F13E001426DF /* Gbboot-ALpM.ttf */; };
 		53F9B6B92888C35A00FF4701 /* App in Resources */ = {isa = PBXBuildFile; fileRef = 53F9B6B82888C35A00FF4701 /* App */; };
 		53F9B6BB2888C37000FF4701 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 53F9B6BA2888C37000FF4701 /* App */; };
@@ -25,6 +26,7 @@
 		5318CA6B28850FC4008FDE8E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		5318CA77288510EE008FDE8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5318CA78288513C8008FDE8E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		531DE3CE293F02C500DEEBAE /* _splash.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = _splash.storyboard; sourceTree = "<group>"; };
 		53D5934A28B2F13E001426DF /* Gbboot-ALpM.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Gbboot-ALpM.ttf"; sourceTree = "<group>"; };
 		53F9B6B82888C35A00FF4701 /* App */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = App; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -69,6 +71,7 @@
 				5318CA6828850FC4008FDE8E /* Assets.xcassets */,
 				53D5934A28B2F13E001426DF /* Gbboot-ALpM.ttf */,
 				5318CA6A28850FC4008FDE8E /* Preview Content */,
+				531DE3CE293F02C500DEEBAE /* _splash.storyboard */,
 			);
 			path = tracker;
 			sourceTree = "<group>";
@@ -149,6 +152,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				531DE3CF293F02C500DEEBAE /* _splash.storyboard in Resources */,
 				53F9B6B92888C35A00FF4701 /* App in Resources */,
 				5318CA6C28850FC4008FDE8E /* Preview Assets.xcassets in Resources */,
 				5318CA6928850FC4008FDE8E /* Assets.xcassets in Resources */,
@@ -292,7 +296,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"tracker/Preview Content\"";
 				DEVELOPMENT_TEAM = E939BBZ6X4;
 				ENABLE_PREVIEWS = YES;
@@ -304,6 +308,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = _splash.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -328,7 +333,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"tracker/Preview Content\"";
 				DEVELOPMENT_TEAM = E939BBZ6X4;
 				ENABLE_PREVIEWS = YES;
@@ -340,6 +345,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = _splash.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
