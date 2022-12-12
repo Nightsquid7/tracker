@@ -31,7 +31,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     })
     
     viewStore.send(.locationAction(.startListening))
-//    AppDelegate.notification(title: "testing", body: "nothing")
+    UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    
     logger.info("didFinishLaunchingWithOptions")
     if let locationKey = launchOptions?[UIApplication.LaunchOptionsKey.location] {
       logger.info("started app with location key \(locationKey)")

@@ -53,7 +53,7 @@ public struct DayView: View {
                 print("left")
                 viewStore.send(.showPreviousDate)
               }, label: {
-                Image("chevron_left", bundle: assetsBundle)
+                Image("left_arrow", bundle: assetsBundle)
               }
               )
               .frame(width: 100, height: 70)
@@ -83,7 +83,7 @@ public struct DayView: View {
                 print("right")
                 viewStore.send(.showNextDate)
               }, label: {
-                Image("chevron_right", bundle: assetsBundle)
+                Image("right_arrow", bundle: assetsBundle)
               })
               .frame(width: 100, height: 70)
             } else {

@@ -86,7 +86,7 @@ public struct CalendarView: View {
             
             viewStore.send(.showMonth(prevDate))
           }, label: {
-            Image("chevron_left", bundle: assetsBundle)
+            Image("left_arrow", bundle: assetsBundle)
           })
           .frame(width: 100, height: 70)
           
@@ -99,7 +99,7 @@ public struct CalendarView: View {
             let nextDate = Date.dateFrom(year: info.year, month: info.month + 1, day: info.day)!
             viewStore.send(.showMonth(nextDate))
           }, label: {
-            Image("chevron_right", bundle: assetsBundle)
+            Image("right_arrow", bundle: assetsBundle)
           })
           .frame(width: 100, height: 70)
         }
