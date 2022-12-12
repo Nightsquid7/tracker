@@ -170,45 +170,34 @@ public struct MapViewRepresentable: UIViewRepresentable {
     let currentLocations = viewStore.currentLocations
     let oldLocations = viewStore.oldLocations
 
-    func addPolylines(type: LineType, locations: [CLLocation]) {
-      uiView.removeOverlays(uiView.overlays)
-      let spans = CoordinateParser.parseCoordinates(locations: locations)
+    func addPolylines(type: LineType, locations: [CLLocation], distanceThreshold: Double = 250) {
+      let spans = CoordinateParser.parseCoordinates(locations: locations, distanceThreshold: Double(distanceThreshold))
+      var polylines: [MyPolyline] = []
       for span in spans {
-        let polyLine = MyPolyline(lineType: type, coordinates: span.map { $0.coordinate })
-        uiView.addOverlay(polyLine)
+        let polyline = MyPolyline(lineType: type, coordinates: span.map { $0.coordinate })
+        polylines.append(polyline)
       }
+
+      uiView.addOverlay(MKMultiPolyline(polylines))
+      dPrint("polylineCount on mapView \(uiView.overlays.count)")
     }
     
     switch viewStore.state.viewAction {
     case .showLocationsFor(let date):
       dPrint("show locations for date \(date)")
       uiView.removeOverlays(uiView.overlays)
-//      let coordinates = oldLocations.map { $0.coordinate }
-//      let polyline = MyPolyline(lineType: .current, coordinates: coordinates)
-//      uiView.addOverlay(polyline)
       addPolylines(type: .current, locations: oldLocations)
       centerMapOnLocations(oldLocations, mapView: uiView)
       
     case .showAll:
       dPrint("Show all")
-//      uiView.removeOverlays(uiView.overlays)
-//      let coordinates = currentLocations.map { $0.coordinate }
-//      let polyline = MyPolyline(lineType: .current, coordinates: coordinates)
-//      uiView.addOverlay(polyline)
+      uiView.removeOverlays(uiView.overlays)
       addPolylines(type: .current, locations: currentLocations)
-      
-//      let oldCoordinates = oldLocations.map { $0.coordinate }
-//      let oldPolyline = MyPolyline(lineType: .past, coordinates: oldCoordinates)
-//      uiView.addOverlay(oldPolyline)
-      addPolylines(type: .past, locations: oldLocations)
+      addPolylines(type: .past, locations: oldLocations, distanceThreshold: 1000)
       centerMapOnLocations(oldLocations, mapView: uiView)
       
     case .showCurrent:
       dPrint("Show current")
-//      uiView.removeOverlays(uiView.overlays)
-//      let coordinates = currentLocations.map { $0.coordinate }
-//      let polyline = MyPolyline(lineType: .current, coordinates: coordinates)
-//      uiView.addOverlay(polyline)
       addPolylines(type: .current, locations: currentLocations)
 
     case .centerMap:
@@ -255,7 +244,8 @@ public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
   }
 
   public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-    let polylineRenderer = MKPolylineRenderer(overlay: overlay)
+//    let polylineRenderer = MKPolylineRenderer(overlay: overlay)
+    let polylineRenderer = MKMultiPolylineRenderer(overlay: overlay)
     polylineRenderer.lineWidth = 5
     polylineRenderer.strokeColor = .systemPink
     polylineRenderer.lineJoin = .bevel
@@ -365,18 +355,13 @@ struct CoordinateParser {
 
     for (location1, location2) in zip(locations, locations[1...]) {
       temp.append(location1)
-      print("location1.distance(from: location2) \(location1.distance(from: location2))")
+
       if location1.distance(from: location2) > distanceThreshold {
         result.append(temp)
         temp = []
         continue
       }
     }
-
-    result.enumerated().forEach({ index, array in
-      print("result[\(index)] count: \(array.count)")
-
-    })
 
    return result
   }

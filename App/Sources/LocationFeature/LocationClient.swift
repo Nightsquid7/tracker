@@ -6,11 +6,12 @@ import RealmSwift
 import LoggerFeature
 import UIKit
 
+// Need to remove database from this
 public struct LocationClient {
   public var startListening: () -> Effect<LocationEvent, Never>
-  public var getAllSavedCoordinates: () -> [CLLocationCoordinate2D]
-  public var getAllSavedLocations: () -> [CLLocation]
-  public var getCurrentLocations: () -> [CLLocation]
+  public var getAllSavedCoordinates: () -> [CLLocationCoordinate2D] // Remove
+  public var getAllSavedLocations: () -> [CLLocation] // remove
+  public var getCurrentLocations: () -> [CLLocation] 
   public var getDistances: () -> Void
   public var deleteRealm: () -> Void
   public var startUpdatingTestLocations: () -> Void

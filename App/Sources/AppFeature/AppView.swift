@@ -200,7 +200,7 @@ public let mapViewReducer = Reducer<MapView.ViewState, MapView.ViewAction, AppEn
     let currentLocations = env.locationClient.getCurrentLocations() + todaySavedLocations
     let mapViewState = MapView.ViewState.init(viewAction: .showCurrent, currentLocations: currentLocations, oldLocations: [])
     state = mapViewState
-//    state._action
+
   case .showAll:
     let todaySavedLocations = env.locationClient.getAllSavedLocations()
       .filter { Calendar.current.isDate($0.timestamp, inSameDayAs: Date()) }
