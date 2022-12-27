@@ -149,13 +149,13 @@ public struct MapViewRepresentable: UIViewRepresentable {
   init(_ viewStore: ViewStore<MapView.ViewState, MapView.ViewAction>) {
     self.viewStore = viewStore
     
-    dPrint("mapView init")
+    log("mapView init")
   }
   
   var mapView = MKMapView()
   
   public func makeUIView(context: Context) -> MKMapView {
-    dPrint("mapView makeUIView")
+    log("mapView makeUIView")
     mapView.showsUserLocation = true
     mapView.showsCompass = true
     mapView.userTrackingMode = .followWithHeading
@@ -165,12 +165,12 @@ public struct MapViewRepresentable: UIViewRepresentable {
   
   
   public func updateUIView(_ uiView: MKMapView, context: Context) {
-    dPrint("")
+    log("")
 
     let currentLocations = viewStore.currentLocations
     let oldLocations = viewStore.oldLocations
-    dPrint("currentLocations.count \(currentLocations.count)")
-    dPrint("oldLocations.count     \(oldLocations.count)")
+    log("currentLocations.count \(currentLocations.count)")
+    log("oldLocations.count     \(oldLocations.count)")
     func addPolylines(type: LineType, locations: [CLLocation], distanceThreshold: Double = 250) {
       let spans = CoordinateParser.parseCoordinates(locations: locations, distanceThreshold: Double(distanceThreshold))
       var polylines: [MyPolyline] = []
@@ -180,25 +180,25 @@ public struct MapViewRepresentable: UIViewRepresentable {
       }
 
       uiView.addOverlay(MKMultiPolyline(polylines))
-      dPrint("updateUIView polylineCount on mapView \(polylines.count)")
+      log("updateUIView polylineCount on mapView \(polylines.count)")
     }
     
     switch viewStore.state.viewAction {
     case .showLocationsFor(let date):
-      dPrint("show locations for date \(date)")
+      log("show locations for date \(date)")
       uiView.removeOverlays(uiView.overlays)
       addPolylines(type: .current, locations: oldLocations)
       centerMapOnLocations(oldLocations, mapView: uiView)
       
     case .showAll:
-      dPrint("Show all")
+      log("Show all")
       uiView.removeOverlays(uiView.overlays)
       addPolylines(type: .current, locations: currentLocations)
       addPolylines(type: .past, locations: oldLocations, distanceThreshold: 1000)
       centerMapOnLocations(oldLocations, mapView: uiView)
       
     case .showCurrent:
-      dPrint("Show current")
+      log("Show current")
       addPolylines(type: .current, locations: currentLocations)
 
     case .centerMap:
@@ -208,7 +208,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
   
   public func makeCoordinator() -> MapViewCoordinator {
     let coordinator = MapViewCoordinator()
-    dPrint("make Coordinator")
+    log("make Coordinator")
     mapView.delegate = coordinator
     return coordinator
   }
@@ -225,20 +225,20 @@ public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
   }
   
   public func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
-//    dPrint("mapView didAdd views \(views)")
+//    log("mapView didAdd views \(views)")
   }
   
   public func mapViewDidFinishLoadingMap(_ mapView: MKMapView) {
-//    dPrint("MapViewDidFinishLoadingMap")
+//    log("MapViewDidFinishLoadingMap")
   }
   
   public func mapViewDidFinishRenderingMap(_ mapView: MKMapView, fullyRendered: Bool) {
-//    dPrint("mapViewDidFinishRenderingMap")
+//    log("mapViewDidFinishRenderingMap")
   }
   
   
   public func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-//    dPrint("mapView regionDidChangeAnimated")
+//    log("mapView regionDidChangeAnimated")
   }
 
   public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
@@ -336,7 +336,7 @@ extension Date {
 //  
 //  public func makeUIView(context: Context) -> MapboxMaps.MapView {
 //    guard let accessToken = ProcessInfo.processInfo.environment["mapboxAccessToken"] else { fatalError() }
-//    dPrint("_MBMapView ")
+//    log("_MBMapView ")
 //    
 //    let myResourceOptions = ResourceOptions(accessToken: accessToken)
 //    let myMapInitOptions = MapInitOptions(resourceOptions: myResourceOptions)
@@ -361,7 +361,7 @@ struct CoordinateParser {
         continue
       }
     }
-    dPrint("updateUIView result.count \(result.count), locations.count \(locations.count)")
+    log("updateUIView result.count \(result.count), locations.count \(locations.count)")
    return result
   }
 }

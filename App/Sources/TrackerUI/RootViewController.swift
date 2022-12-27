@@ -8,3 +8,21 @@ public final class RootViewController: UIViewController {
     logger.debug("")
   }
 }
+
+extension RootViewController {
+  private func setupDebugMenu() {
+    let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgeSwiped))
+       edgePan.edges = .left
+
+       view.addGestureRecognizer(edgePan)
+  }
+
+  @objc func screenEdgeSwiped(_ recognizer: UIScreenEdgePanGestureRecognizer) {
+      if recognizer.state == .recognized {
+//        let hosting = UIHostingController(rootView: SettingsView(store: <#T##Store<ViewState, ViewAction>#>))
+
+      }
+  }
+}
+
+

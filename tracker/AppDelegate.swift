@@ -11,7 +11,6 @@ import RealmSwift
 @main
 final class AppDelegate: NSObject, UIApplicationDelegate {
 
-  let locationManager = CLLocationManager()
   let store  = Store(
     initialState: .init(),
     reducer: appReducer,
@@ -32,17 +31,30 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     })
     
     viewStore.send(.locationAction(.startListening))
-    UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     
     logger.info("didFinishLaunchingWithOptions")
     if let locationKey = launchOptions?[UIApplication.LaunchOptionsKey.location] {
       logger.info("started app with location key \(locationKey)")
-      AppDelegate.notification(title: "Started with location key!", body: "locationKey \(locationKey)")
     }
     
     return true
     }
+
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+  func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    completionHandler([.badge, .list, .sound])
+  }
   
+  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+          print(response.notification.request.content.userInfo)
+          completionHandler()
+      }
+}
+
+
+extension AppDelegate {
   static func notification(title: String, body: String) {
     let content = UNMutableNotificationContent()
     content.title = title
@@ -51,7 +63,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     content.categoryIdentifier = "actionCategory"
     content.sound = UNNotificationSound.default
 
-    
+
     var dateComponents = Calendar.current.dateComponents([.weekday, .hour], from: Date().addingTimeInterval(1))
     dateComponents.calendar = Calendar.current
     let trigger = UNTimeIntervalNotificationTrigger.init(timeInterval: 3.0, repeats: false)
@@ -71,15 +83,4 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
        }
     }
   }
-}
-
-extension AppDelegate: UNUserNotificationCenterDelegate {
-  func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-    completionHandler([.badge, .list, .sound])
-  }
-  
-  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-          print(response.notification.request.content.userInfo)
-          completionHandler()
-      }
 }

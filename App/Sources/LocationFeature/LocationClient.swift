@@ -50,16 +50,16 @@ extension LocationClient {
           switch locationEvent {
 
           case .authorizationStatusChanged(let authorizationStatus):
-            dPrint("authorizationStatusChanged")
+            log("authorizationStatusChanged")
             
             switch authorizationStatus {
             case .authorizedAlways, .authorizedWhenInUse:
-              dPrint("authorizationStatus always or whenInUse")
+              log("authorizationStatus always or whenInUse")
               locationManager.startMonitoringSignificantLocationChanges()
               locationManager.startUpdatingLocation()
             case .denied:
 
-              dPrint("authorizationStatus denied")
+              log("authorizationStatus denied")
             default:
               break
             }
@@ -82,7 +82,7 @@ extension LocationClient {
         if cachedRealmLocations.count == 0 {
           cachedRealmLocations = Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.location() })
         }
-        dPrint("getAllSavedLocations \(cachedRealmLocations.count)")
+        log("getAllSavedLocations \(cachedRealmLocations.count)")
         return cachedRealmLocations
       }, getCurrentLocations: {
 
@@ -147,14 +147,14 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
   
   var currentLocations: [CLLocation] = [] {
     didSet(newValue) {
-      dPrint("updated currentLocations \(currentLocations.count)")
+      log("updated currentLocations \(currentLocations.count)")
       publisher.send(.updatedLocation)
     }
   }
   
   override init() {
     var config = Realm.Configuration(shouldCompactOnLaunch: { totalBytes, usedBytes in
-      dPrint("realm size: bytes used \(usedBytes)  total bytes\(totalBytes)")
+      log("realm size: bytes used \(usedBytes)  total bytes\(totalBytes)")
       return false
     })
     config.deleteRealmIfMigrationNeeded = true
@@ -163,17 +163,17 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
   }
     
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    dPrint("received locations: \(locations.count)")
+    log("received locations: \(locations.count)")
     // FIXME: don't get this from database, store this in KeyChain
     guard let mostRecentLocation = locations.last else { return }
     if lastSavedLocation == nil {
       lastSavedLocation = realm.objects(RealmLocation.self).max(by: { $0.timestamp < $1.timestamp})?.location()
-      dPrint("lastSavedLocation is nil, lastSavedLocation in database is: \(lastSavedLocation)")
+      log("lastSavedLocation is nil, lastSavedLocation in database is: \(lastSavedLocation)")
     }
     
     guard let lastSavedLocation = lastSavedLocation else {
       // Save the point to realm and exit
-      dPrint("lastSavedLocation is nil, cache lastSavedLocation, save mostRecentLocation to realm")
+      log("lastSavedLocation is nil, cache lastSavedLocation, save mostRecentLocation to realm")
       lastSavedLocation = mostRecentLocation
       
       do {
@@ -182,22 +182,22 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
           realm.add(RealmLocation(location: mostRecentLocation))
         }
       } catch {
-        dPrint("error saving realm \(error)")
+        log("error saving realm \(error)")
       }
       return
     }
     
-    dPrint("mostRecentLocation speed: \(mostRecentLocation.speed) .distance(from: lastSavedLocation) \(mostRecentLocation.distance(from: lastSavedLocation)) \n \(mostRecentLocation)")
+    log("mostRecentLocation speed: \(mostRecentLocation.speed) .distance(from: lastSavedLocation) \(mostRecentLocation.distance(from: lastSavedLocation)) \n \(mostRecentLocation)")
     
     if mostRecentLocation.distance(from: lastSavedLocation) > 10 && mostRecentLocation.speed > 1 {
-        dPrint("save point with distance \(mostRecentLocation.distance(from: lastSavedLocation)), speed: \(mostRecentLocation.speed)")
+        log("save point with distance \(mostRecentLocation.distance(from: lastSavedLocation)), speed: \(mostRecentLocation.speed)")
       do {
         try realm.write {
           realm.add(RealmLocation(location: mostRecentLocation))
         }
         currentLocations.append(mostRecentLocation)
       } catch {
-        dPrint("error saving realm \(error)")
+        log("error saving realm \(error)")
       }
     }
     
@@ -205,7 +205,7 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
   }
   
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    dPrint("received error \(error)")
+    log("received error \(error)")
     publisher.send(.error)
   }
   

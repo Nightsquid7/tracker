@@ -3,12 +3,13 @@ import Logging
 public let logger = Logger(label: "com.nightsquid.tracker")
 
 
-public func dPrint(_ any: Logger.Message,
-                   level: Logger.Level = .info,
+public func log(_ any: Logger.Message,
+                   level: Logger.Level = .debug,
                    file: StaticString = #file,
                    function: StaticString = #function,
                    line: Int = #line) {
-  let content: Logger.Message = "\(function):\(line) \(any)"
+
+  let content: Logger.Message = "\(file) \(function):\(line) \(any)"
   switch level {
   case .info:
     logger.info(content)
@@ -39,3 +40,5 @@ public func dPrint(_ any: Logger.Message,
     print(content)
   }
 }
+
+

@@ -34,13 +34,13 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
         
         case .startListening:
           
-          let locations = env.locationClient.getAllSavedLocations().sorted(by: { $0.timestamp < $1.timestamp })
-          if let locationsFirstDate = locations.first?.timestamp, let locationsLastDate = locations.last?.timestamp {
-            let dateRange: ClosedRange<Date> = locationsFirstDate...locationsLastDate
-            state.appViewState.dayViewState.dateRange = dateRange
-            state.appViewState.datePickerViewState = .init(dateRange: dateRange, date: Date())
-            dPrint("state.appViewState.datePickerViewState?.dateRange \(state.appViewState.datePickerViewState?.dateRange)")
-          }
+//          let locations = env.locationClient.getAllSavedLocations().sorted(by: { $0.timestamp < $1.timestamp })
+//          if let locationsFirstDate = locations.first?.timestamp, let locationsLastDate = locations.last?.timestamp {
+//            let dateRange: ClosedRange<Date> = locationsFirstDate...locationsLastDate
+//            state.appViewState.dayViewState.dateRange = dateRange
+//            state.appViewState.datePickerViewState = .init(dateRange: dateRange, date: Date())
+//            log("state.appViewState.datePickerViewState?.dateRange \(state.appViewState.datePickerViewState?.dateRange)")
+//          }
           
           return env.locationClient.startListening()
             .map { AppAction.locationAction(.receivedEvent($0)) }
@@ -52,16 +52,16 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
             
           case .updatedLocation:
             // FIXME: this should be called on mapViewState
-            dPrint(".updatedLocation")
+            log(".updatedLocation")
             switch state.appViewState.mapViewState.viewAction {
             case .showCurrent:
               state.appViewState.mapViewState.currentLocations = env.locationClient.getCurrentLocations()
             default:
-              dPrint("don.t update current location state")
+              log("don.t update current location state")
             }
             
           case .authorizationStatusChanged(let authorizationStatus):
-            dPrint("\(authorizationStatus)")
+            log("\(authorizationStatus)")
             return Effect(value: .appViewAction(.settingsViewAction(.updatedLocationStatus(authorizationStatus))))
           
           default:
