@@ -18,7 +18,6 @@ public struct AppState: Equatable {
     self.appViewState = appViewState
     self.settingsViewState = settingsViewState
     LoggingSystem.bootstrap(PersistentLogHandler.init)
-    
   }
 }
 

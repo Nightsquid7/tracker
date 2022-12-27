@@ -9,7 +9,8 @@ public func log(_ any: Logger.Message,
                    function: StaticString = #function,
                    line: Int = #line) {
 
-  let content: Logger.Message = "\(file) \(function):\(line) \(any)"
+  let fileMessage = "\(file)".split(separator: "/").last!
+  let content: Logger.Message = "\(fileMessage) \(function):\(line) \(any)"
   switch level {
   case .info:
     logger.info(content)

@@ -1,4 +1,4 @@
-import TrackerUI
+import AppFeature
 import SwiftUI
 import UIKit
 
@@ -11,7 +11,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = RootViewController()
+        window.rootViewController = RootViewController(store: AppDelegate.shared.store)
         self.window = window
         window.makeKeyAndVisible()
     }

@@ -11,7 +11,8 @@ import RealmSwift
 @main
 final class AppDelegate: NSObject, UIApplicationDelegate {
 
-  let store  = Store(
+
+  let store = Store(
     initialState: .init(),
     reducer: appReducer,
     environment: .live
@@ -29,7 +30,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .provisional, .alert], completionHandler: { result, error in
       print("result, \(result) error \(error)")
     })
-    
+
+//    LoggingSystem.bootstrap(PersistentLogHandler.init)
     viewStore.send(.locationAction(.startListening))
     
     logger.info("didFinishLaunchingWithOptions")
@@ -39,7 +41,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     
     return true
     }
+}
 
+extension AppDelegate {
+  static var shared: AppDelegate {
+    UIApplication.shared.delegate as! AppDelegate
+  }
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {
