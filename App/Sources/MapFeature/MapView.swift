@@ -165,11 +165,12 @@ public struct MapViewRepresentable: UIViewRepresentable {
   
   
   public func updateUIView(_ uiView: MKMapView, context: Context) {
-    print("update mapView... \(uiView) mapView \(mapView)")
+    dPrint("")
 
     let currentLocations = viewStore.currentLocations
     let oldLocations = viewStore.oldLocations
-
+    dPrint("currentLocations.count \(currentLocations.count)")
+    dPrint("oldLocations.count     \(oldLocations.count)")
     func addPolylines(type: LineType, locations: [CLLocation], distanceThreshold: Double = 250) {
       let spans = CoordinateParser.parseCoordinates(locations: locations, distanceThreshold: Double(distanceThreshold))
       var polylines: [MyPolyline] = []
@@ -179,7 +180,7 @@ public struct MapViewRepresentable: UIViewRepresentable {
       }
 
       uiView.addOverlay(MKMultiPolyline(polylines))
-      dPrint("polylineCount on mapView \(uiView.overlays.count)")
+      dPrint("updateUIView polylineCount on mapView \(polylines.count)")
     }
     
     switch viewStore.state.viewAction {
@@ -218,11 +219,8 @@ public struct MapViewRepresentable: UIViewRepresentable {
 public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
   
   var whaleImages: UIImage
-  
 
   init(_ garbage: Bool? = nil) {
-//    self.mapView = mapView
-//    dPrint("mapView coordinator init()")
     whaleImages = UIImage(named: "my_whale_64x64", in: assetsBundle, with: nil)!
   }
   
@@ -244,12 +242,13 @@ public final class MapViewCoordinator: NSObject, MKMapViewDelegate {
   }
 
   public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-//    let polylineRenderer = MKPolylineRenderer(overlay: overlay)
+
     let polylineRenderer = MKMultiPolylineRenderer(overlay: overlay)
     polylineRenderer.lineWidth = 5
     polylineRenderer.strokeColor = .systemPink
     polylineRenderer.lineJoin = .bevel
-//    dPrint("mapView renderFor overlay")
+
+
     if let polyline = overlay as? MyPolyline {
       switch polyline.lineType {
       case .current:
@@ -362,7 +361,7 @@ struct CoordinateParser {
         continue
       }
     }
-
+    dPrint("updateUIView result.count \(result.count), locations.count \(locations.count)")
    return result
   }
 }
