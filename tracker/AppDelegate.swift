@@ -8,6 +8,7 @@ import Pulse
 import UIKit
 import RealmSwift
 
+@main
 final class AppDelegate: NSObject, UIApplicationDelegate {
 
   let locationManager = CLLocationManager()

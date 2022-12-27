@@ -1,7 +1,6 @@
 import AppFeature
 import SwiftUI
 
-@main
 struct trackerApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   

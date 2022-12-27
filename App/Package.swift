@@ -82,8 +82,6 @@ let package = Package(
                 dependencies: [
                   .product(name: "ComposableArchitecture",
                            package: "swift-composable-architecture"),
-//                  "LocationFeature",
-//                  "LoggerFeature",
                   "MapFeature",
                   .productItem(name: "Pulse",
                                package: "Pulse", condition: nil),
