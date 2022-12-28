@@ -9,8 +9,7 @@ import UIKit
 // Need to remove database from this
 public struct LocationClient {
   public var startListening: () -> Effect<LocationEvent, Never>
-  public var getAllSavedCoordinates: () -> [CLLocationCoordinate2D] // Remove
-  public var getAllSavedLocations: () -> [CLLocation] // remove
+  public var getAllSavedLocations: () -> [CLLocation]
   public var getCurrentLocations: () -> [CLLocation]
   public var deleteRealm: () -> Void
   public var startUpdatingTestLocations: () -> Void
@@ -70,10 +69,6 @@ extension LocationClient {
         return locationDelegate
           .publisher
           .eraseToEffect()
-      },
-      
-      getAllSavedCoordinates: {
-        return Array(locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp }).map { $0.clCoordinate2d() })
       },
       
       getAllSavedLocations: {
@@ -148,7 +143,7 @@ final class LocationDelegate: NSObject, CLLocationManagerDelegate {
   }
     
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    log("received locations: \(locations.count)")
+    log("\(locations.count)")
     // FIXME: don't get this from database, store this in KeyChain
     guard let mostRecentLocation = locations.last else { return }
     if lastSavedLocation == nil {
