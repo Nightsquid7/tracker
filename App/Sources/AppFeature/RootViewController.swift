@@ -7,8 +7,8 @@ import PulseUI
 
 public final class RootViewController: UIViewController {
   private let store: Store<AppState, AppAction>
-
   let viewStore: ViewStore<AppState, AppAction>
+
   public init(store: Store<AppState, AppAction>) {
     self.store = store
     self.viewStore = ViewStore(store)
@@ -48,7 +48,10 @@ extension RootViewController {
 
 
   func showDebug() {
-    let hosting = UIHostingController(rootView: MainView())
+    let settingsView = SettingsView(store: store.scope(state: \.settingsViewState,
+                                                       action: { AppAction.appViewAction(AppView.ViewAction.settingsViewAction($0)) }))
+
+    let hosting = UIHostingController(rootView: settingsView)
     present(hosting, animated: false)
   }
 }

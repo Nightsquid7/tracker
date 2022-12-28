@@ -11,8 +11,7 @@ public struct LocationClient {
   public var startListening: () -> Effect<LocationEvent, Never>
   public var getAllSavedCoordinates: () -> [CLLocationCoordinate2D] // Remove
   public var getAllSavedLocations: () -> [CLLocation] // remove
-  public var getCurrentLocations: () -> [CLLocation] 
-  public var getDistances: () -> Void
+  public var getCurrentLocations: () -> [CLLocation]
   public var deleteRealm: () -> Void
   public var startUpdatingTestLocations: () -> Void
   public var getAllTestLocations: () -> [CLLocation]
@@ -30,10 +29,10 @@ extension LocationClient {
       
     locationManager.delegate = locationDelegate
     var cancellables = Set<AnyCancellable>()
-    
-  
+
     return Self(
       startListening: {
+        log("")
         locationManager.requestAlwaysAuthorization()
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = true
@@ -58,7 +57,6 @@ extension LocationClient {
               locationManager.startMonitoringSignificantLocationChanges()
               locationManager.startUpdatingLocation()
             case .denied:
-
               log("authorizationStatus denied")
             default:
               break
@@ -88,19 +86,6 @@ extension LocationClient {
 
         return locationDelegate.currentLocations
         
-      }, getDistances: {
-        let locations = locationDelegate.realm.objects(RealmLocation.self).sorted(by: { $0.timestamp > $1.timestamp })
-        var locationsToDelete: [RealmLocation] = []
-        for (loc1, loc2) in zip(locations, locations[1...]) {
-          let distance = loc1.location().distance(from: loc2.location())
-          if distance < 20 {
-            print("We should delete realm with distance: \(distance) \(loc2)")
-            locationsToDelete.append(loc2)
-          }
-        }
-        try! locationDelegate.realm.write {
-          locationDelegate.realm.delete(locationsToDelete)
-        }
       },
       
       deleteRealm: {

@@ -46,6 +46,7 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
             .map { AppAction.locationAction(.receivedEvent($0)) }
             
         case .receivedEvent(let event):
+          log("AppReducer.receivedEvent: \(event)")
           switch event {
           case .location(let location):
             break
