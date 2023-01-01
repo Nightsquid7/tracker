@@ -1,7 +1,15 @@
 import Logging
+import Pulse
 
-public let logger = Logger(label: "com.nightsquid.tracker")
+public struct TrackerLogger {
+  static var logger: Logger = Logger(label: "com.nightsquid.tracker")
 
+  public static func setup() {
+    LoggingSystem.bootstrap(PersistentLogHandler.init)
+    logger.logLevel = .debug
+  }
+
+}
 
 public func log(_ any: Logger.Message,
                    level: Logger.Level = .debug,
@@ -13,31 +21,31 @@ public func log(_ any: Logger.Message,
   let content: Logger.Message = "\(fileMessage) \(function):\(line) \(any)"
   switch level {
   case .info:
-    logger.info(content)
+    TrackerLogger.logger.info(content)
     print(content)
     
   case .trace:
-    logger.trace(content)
+    TrackerLogger.logger.trace(content)
     print(content)
     
   case .debug:
-    logger.debug(content)
+    TrackerLogger.logger.debug(content)
     print(content)
     
   case .notice:
-    logger.notice(content)
+    TrackerLogger.logger.notice(content)
     print(content)
     
   case .warning:
-    logger.warning(content)
+    TrackerLogger.logger.warning(content)
     print(content)
     
   case .error:
-    logger.error(content)
+    TrackerLogger.logger.error(content)
     print(content)
     
   case .critical:
-    logger.critical(content)
+    TrackerLogger.logger.critical(content)
     print(content)
   }
 }

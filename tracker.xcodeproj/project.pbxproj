@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		531302C2295A7BA900A6597C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 531302C1295A7BA900A6597C /* SceneDelegate.swift */; };
-		5318CA6528850FC2008FDE8E /* trackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5318CA6428850FC2008FDE8E /* trackerApp.swift */; };
-		5318CA6728850FC2008FDE8E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5318CA6628850FC2008FDE8E /* ContentView.swift */; };
 		5318CA6928850FC4008FDE8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5318CA6828850FC4008FDE8E /* Assets.xcassets */; };
 		5318CA6C28850FC4008FDE8E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5318CA6B28850FC4008FDE8E /* Preview Assets.xcassets */; };
 		5318CA79288513C8008FDE8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5318CA78288513C8008FDE8E /* AppDelegate.swift */; };
@@ -22,8 +20,6 @@
 /* Begin PBXFileReference section */
 		531302C1295A7BA900A6597C /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		5318CA6128850FC2008FDE8E /* tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		5318CA6428850FC2008FDE8E /* trackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = trackerApp.swift; sourceTree = "<group>"; };
-		5318CA6628850FC2008FDE8E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		5318CA6828850FC4008FDE8E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5318CA6B28850FC4008FDE8E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		5318CA77288510EE008FDE8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -67,10 +63,8 @@
 			isa = PBXGroup;
 			children = (
 				5318CA77288510EE008FDE8E /* Info.plist */,
-				5318CA6428850FC2008FDE8E /* trackerApp.swift */,
 				5318CA78288513C8008FDE8E /* AppDelegate.swift */,
 				531302C1295A7BA900A6597C /* SceneDelegate.swift */,
-				5318CA6628850FC2008FDE8E /* ContentView.swift */,
 				5318CA6828850FC4008FDE8E /* Assets.xcassets */,
 				53D5934A28B2F13E001426DF /* Gbboot-ALpM.ttf */,
 				5318CA6A28850FC4008FDE8E /* Preview Content */,
@@ -171,8 +165,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				5318CA79288513C8008FDE8E /* AppDelegate.swift in Sources */,
-				5318CA6728850FC2008FDE8E /* ContentView.swift in Sources */,
-				5318CA6528850FC2008FDE8E /* trackerApp.swift in Sources */,
 				531302C2295A7BA900A6597C /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

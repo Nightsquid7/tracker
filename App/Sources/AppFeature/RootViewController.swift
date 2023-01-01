@@ -24,11 +24,11 @@ public final class RootViewController: UIViewController {
     view.backgroundColor = .blue
     log("")
     setupDebugMenu()
-    showDebug()
+  }
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//      self.viewStore.send(.locationAction()))
-    }
+  public override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    showDebug()
   }
 }
 
@@ -51,7 +51,7 @@ extension RootViewController {
     let settingsView = SettingsView(store: store.scope(state: \.settingsViewState,
                                                        action: { AppAction.appViewAction(AppView.ViewAction.settingsViewAction($0)) }))
 
-    let hosting = UIHostingController(rootView: settingsView)
+    let hosting = UIHostingController(rootView: MainView())
     present(hosting, animated: false)
   }
 }

@@ -2,51 +2,29 @@ import AppFeature
 import ComposableArchitecture
 import CoreLocation
 import Foundation
-import Logging
 import LoggerFeature
-import Pulse
 import UIKit
 import RealmSwift
 
 @main
 final class AppDelegate: NSObject, UIApplicationDelegate {
-
-
-  let store = Store(
-    initialState: .init(),
-    reducer: appReducer,
-    environment: .live
-  )
-  
-  lazy var viewStore = ViewStore(
-    self.store.scope(state: { _ in () }),
-    removeDuplicates: ==
-  )
   
   
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
     UNUserNotificationCenter.current().delegate = self
     
     UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .provisional, .alert], completionHandler: { result, error in
-      print("result, \(result) error \(error)")
+      log("result, \(result) error \(error)")
     })
 
-//    LoggingSystem.bootstrap(PersistentLogHandler.init)
-    viewStore.send(.locationAction(.startListening))
-    
-    logger.info("didFinishLaunchingWithOptions")
+    TrackerLogger.setup()
+    log("didFinishLaunchingWithOptions")
     if let locationKey = launchOptions?[UIApplication.LaunchOptionsKey.location] {
-      logger.info("started app with location key \(locationKey)")
+      log("started app with location key \(locationKey)")
     }
     
     return true
     }
-}
-
-extension AppDelegate {
-  static var shared: AppDelegate {
-    UIApplication.shared.delegate as! AppDelegate
-  }
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {
